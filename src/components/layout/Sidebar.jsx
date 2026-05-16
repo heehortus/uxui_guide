@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { usePlatforms } from '../../hooks/usePlatforms'
 import { useSteps, useSearchSteps } from '../../hooks/useSteps'
 import PlatformModal from '../modals/PlatformModal'
+import ArrowIcon from '../ui/ArrowIcon'
 
 export default function Sidebar() {
   const { platformId, stepId } = useParams()
@@ -10,6 +11,7 @@ export default function Sidebar() {
   const { data: platforms = [] } = usePlatforms()
   const [openGroups, setOpenGroups] = useState(new Set([platformId].filter(Boolean)))
   const [addPlatform, setAddPlatform] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const searchRef = useRef(null)
@@ -46,64 +48,90 @@ export default function Sidebar() {
     navigate(`/${result.platform_id}/${result.id}`)
   }
 
+  function handleGoHome() {
+    setOpenGroups(new Set())
+    navigate('/')
+  }
+
   const showSearch = debouncedQuery.trim().length > 0
 
   return (
     <>
-      <aside className="sidebar">
+      <aside className={`sidebar${collapsed ? ' sidebar-collapsed' : ''}`}>
         <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <div>
+          {!collapsed && (
+            <div
+              className="sidebar-logo"
+              onClick={handleGoHome}
+              style={{ cursor: 'pointer', flex: 1, minWidth: 0 }}
+              title="홈으로"
+            >
               <div className="sidebar-title">UXUI 개발 가이드</div>
+              <div className="sidebar-subtitle">알파 브라더스/ABBG UXUI팀 문서</div>
             </div>
-          </div>
-          <div className="sidebar-subtitle">알파 브라더스/ABBG UXUI팀 문서</div>
+          )}
+          <button
+            className="sidebar-collapse-btn"
+            onClick={() => setCollapsed(v => !v)}
+            title={collapsed ? '사이드바 펼치기' : '사이드바 접기'}
+          >
+            <ArrowIcon direction={collapsed ? 'right' : 'left'} size={16} />
+          </button>
         </div>
 
-        <nav className="sidebar-nav">
-          {/* 검색 */}
-          <div className="sidebar-search-wrap">
-            <div className="sidebar-search-box">
-              <span className="sidebar-search-icon">⌕</span>
-              <input
-                ref={searchRef}
-                className="sidebar-search-input"
-                value={query}
-                onChange={handleQueryChange}
-                placeholder="궁금한 내용을 입력하세요."
-              />
-              {query && (
-                <button className="sidebar-search-clear" onClick={clearSearch}>✕</button>
-              )}
-            </div>
-            {showSearch && <SearchResults query={debouncedQuery} onSelect={handleSelectResult} />}
-          </div>
+        {!collapsed && (
+          <>
 
-          {/* 홈 */}
-          {!showSearch && (
-            <>
-              <div
-                className={`nav-item${!platformId ? ' active' : ''}`}
-                onClick={() => { setOpenGroups(new Set()); navigate('/') }}
-              >
-                <span>홈</span>
+            <nav className="sidebar-nav">
+              {/* 검색 */}
+              <div className="sidebar-search-wrap">
+                <div className="sidebar-search-box">
+                  <span className="sidebar-search-icon">⌕</span>
+                  <input
+                    ref={searchRef}
+                    className="sidebar-search-input"
+                    value={query}
+                    onChange={handleQueryChange}
+                    placeholder="궁금한 내용을 입력하세요."
+                  />
+                  {query && (
+                    <button className="sidebar-search-clear" onClick={clearSearch}>✕</button>
+                  )}
+                </div>
+                {showSearch && <SearchResults query={debouncedQuery} onSelect={handleSelectResult} />}
               </div>
-              {/* 플랫폼 그룹 */}
-              {platforms.map(p => (
-                <PlatformGroup
-                  key={p.id}
-                  platform={p}
-                  isOpen={openGroups.has(p.id)}
-                  activePlatformId={platformId}
-                  activeStepId={stepId}
-                  onToggle={() => toggleGroup(p.id)}
-                  onClickPlatform={() => handleNavPlatform(p.id)}
-                  onClickStep={(sid) => navigate(`/${p.id}/${sid}`)}
-                />
-              ))}
-            </>
-          )}
-        </nav>
+
+              {/* 홈 */}
+              {!showSearch && (
+                <>
+                  <div
+                    className={`nav-item${!platformId ? ' active' : ''}`}
+                    onClick={() => { setOpenGroups(new Set()); navigate('/') }}
+                  >
+                    <span>홈</span>
+                  </div>
+                  {/* 플랫폼 그룹 */}
+                  {platforms.map(p => (
+                    <PlatformGroup
+                      key={p.id}
+                      platform={p}
+                      isOpen={openGroups.has(p.id)}
+                      activePlatformId={platformId}
+                      activeStepId={stepId}
+                      onToggle={() => toggleGroup(p.id)}
+                      onClickPlatform={() => handleNavPlatform(p.id)}
+                      onClickStep={(sid) => navigate(`/${p.id}/${sid}`)}
+                    />
+                  ))}
+                </>
+              )}
+            </nav>
+
+            <div className="sidebar-footer">
+              Design &amp; Development By. Heehortus
+            </div>
+          </>
+        )}
       </aside>
 
       <PlatformModal open={addPlatform} onClose={() => setAddPlatform(false)} />
@@ -136,9 +164,11 @@ function PlatformGroup({ platform, isOpen, activePlatformId, activeStepId, onTog
 
   return (
     <div>
-      <div className={`nav-platform-header${isActive ? ' active' : ''}`}>
-        <span className="nav-platform-label" onClick={onClickPlatform}>{platform.label}</span>
-        <span className={`nav-chevron${isOpen ? ' open' : ''}`} onClick={onToggle}>›</span>
+      <div className={`nav-platform-header${isActive ? ' active' : ''}`} onClick={onClickPlatform}>
+        <span className="nav-platform-label">{platform.label}</span>
+        <span className={`nav-chevron${isOpen ? ' open' : ''}`} onClick={e => { e.stopPropagation(); onToggle() }}>
+          <ArrowIcon direction="right" size={14} />
+        </span>
       </div>
 
       {isOpen && (

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePlatforms } from '../hooks/usePlatforms'
 import PlatformModal from '../components/modals/PlatformModal'
+import ArrowIcon from '../components/ui/ArrowIcon'
 
 export default function Home() {
   const { data: platforms = [], isLoading } = usePlatforms()
@@ -41,8 +42,9 @@ export default function Home() {
                 <div className="card-title">{p.label}</div>
                 <div className="card-subtitle">{p.description}</div>
               </div>
-              <div style={{ fontSize: 12, color: 'var(--on-surface-variant)', flexShrink: 0 }}>
-                보러가기 ›
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--on-surface-variant)', flexShrink: 0 }}>
+                보러가기
+                <ArrowIcon direction="right" size={14} color="var(--on-surface-variant)" />
               </div>
             </div>
           </div>
