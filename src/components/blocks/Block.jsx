@@ -82,12 +82,15 @@ function BlockInner({ block }) {
     case 'kakao':   return <KakaoBlock content={block.content} />
     case 'code':    return <CodeBlock content={block.content} />
     case 'file':    return <FileBlock content={block.content} />
-    default:
+    default: {
+      // Tiptap HTML content starts with <p>/<h>/<ul> etc; plain text uses linkifyText
+      const isHtml = /^<[a-z]/i.test((block.content || '').trimStart())
       return (
         <div
-          className="block-content"
-          dangerouslySetInnerHTML={{ __html: linkifyText(block.content) }}
+          className="block-content rich-content"
+          dangerouslySetInnerHTML={{ __html: isHtml ? block.content : linkifyText(block.content) }}
         />
       )
+    }
   }
 }

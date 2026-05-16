@@ -3,6 +3,7 @@ import Modal from '../ui/Modal'
 import { useCreateBlock, useUpdateBlock } from '../../hooks/useBlocks'
 import { useToast } from '../../context/ToastContext'
 import { supabase } from '../../lib/supabase'
+import RichEditor from '../ui/RichEditor'
 
 const TYPES = [
   { value: 'default', label: '일반' },
@@ -24,7 +25,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
   const [content, setContent] = useState('')
   const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', note: '', code: '' }])
   const [processItems, setProcessItems] = useState([{ title: '', desc: '' }])
-  const [kakaoContent, setKakaoContent] = useState('')
+  const [kakaoItems, setKakaoItems] = useState([{ title: '', body: '' }])
   const [codeContent, setCodeContent] = useState('')
   const [fileContent, setFileContent] = useState('')   // stored as "name|url|size\n..."
   const [pendingFiles, setPendingFiles] = useState([]) // File objects not yet uploaded
@@ -41,7 +42,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       setType(editing?.type ?? 'default')
       setLabel(editing?.label ?? '')
       setContent('')
-      setKakaoContent('')
+      setKakaoItems([{ title: '', body: '' }])
       setCodeContent('')
       setFileContent('')
       setPendingFiles([])
@@ -64,7 +65,17 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
           : [{ name: '', type: '', url: '', note: '', code: '' }]
         )
       } else if (editing?.type === 'kakao') {
-        setKakaoContent(editing?.content ?? '')
+        const msgs = (editing?.content ?? '').split(/\n---\n/).map(s => s.trim()).filter(Boolean)
+        setKakaoItems(msgs.length > 0
+          ? msgs.map(m => {
+              const lines = m.split('\n')
+              if (lines[0]?.startsWith('# ')) {
+                return { title: lines[0].slice(2).trim(), body: lines.slice(1).join('\n').trim() }
+              }
+              return { title: '', body: m }
+            })
+          : [{ title: '', body: '' }]
+        )
       } else if (editing?.type === 'code') {
         setCodeContent(editing?.content ?? '')
       } else if (editing?.type === 'file') {
@@ -103,7 +114,12 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         .map(it => `${it.name}|${it.type}|${it.url}|${it.note}|${it.code.replace(/\n/g, '\\n')}`)
         .join('\n')
     }
-    else if (type === 'kakao') actualContent = kakaoContent
+    else if (type === 'kakao') {
+      actualContent = kakaoItems
+        .filter(it => it.body.trim())
+        .map(it => it.title.trim() ? `# ${it.title}\n${it.body}` : it.body)
+        .join('\n---\n')
+    }
     else if (type === 'code') actualContent = codeContent
     else if (type === 'file') {
       const existingLines = fileContent ? fileContent.split('\n').filter(Boolean) : []
@@ -221,9 +237,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       {!SPECIAL.includes(type) && (
         <div className="form-group">
           <label className="form-label">내용</label>
-          <textarea className="form-textarea" value={content} onChange={e => setContent(e.target.value)}
-            placeholder="내용을 입력하세요. URL은 자동으로 링크 처리됩니다." />
-          <span className="form-hint">줄 바꿈 그대로 반영됩니다. URL은 자동 링크됩니다.</span>
+          <RichEditor value={content} onChange={setContent} placeholder="내용을 입력하세요." />
         </div>
       )}
 
@@ -320,15 +334,36 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       {type === 'kakao' && (
         <div className="form-group">
           <label className="form-label">카카오 메시지</label>
-          <div className="form-hint" style={{ marginBottom: 8 }}>
-            여러 메시지는 <code style={{ background: 'var(--surface-container)', padding: '1px 6px', borderRadius: 4 }}>---</code>로 구분.{' '}
-            제목은 첫 줄에 <code style={{ background: 'var(--surface-container)', padding: '1px 6px', borderRadius: 4 }}># 제목</code> (선택)
+          <div className="kakao-items-list">
+            {kakaoItems.map((item, i) => (
+              <div key={i} className="kakao-item-block">
+                <div className="kakao-item-header">
+                  <span className="kakao-item-num">메시지 {i + 1}</span>
+                  <button className="modal-item-remove" onClick={() => setKakaoItems(prev => prev.filter((_, j) => j !== i))}>×</button>
+                </div>
+                <input
+                  className="form-input"
+                  value={item.title}
+                  onChange={e => setKakaoItems(prev => prev.map((it, j) => j === i ? { ...it, title: e.target.value } : it))}
+                  placeholder="제목 (선택)"
+                />
+                <textarea
+                  className="form-textarea"
+                  value={item.body}
+                  onChange={e => setKakaoItems(prev => prev.map((it, j) => j === i ? { ...it, body: e.target.value } : it))}
+                  placeholder="메시지 내용"
+                  style={{ minHeight: 100 }}
+                />
+              </div>
+            ))}
           </div>
-          <textarea className="form-textarea" value={kakaoContent}
-            onChange={e => setKakaoContent(e.target.value)}
-            style={{ minHeight: 180 }}
-            placeholder={'# 스킨 제안 안내\n안녕하세요 :)\n---\n# 커스텀 문의 결과\n비용은 20만원입니다.'}
-          />
+          <button
+            className="link-item-add-btn"
+            style={{ marginTop: 8 }}
+            onClick={() => setKakaoItems(prev => [...prev, { title: '', body: '' }])}
+          >
+            + 메시지 추가
+          </button>
         </div>
       )}
 
