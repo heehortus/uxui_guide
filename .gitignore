@@ -27,3 +27,5 @@ DESIGN.md
 
 # ref
 reference/
+.vercel
+.env*.local
