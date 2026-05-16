@@ -89,7 +89,7 @@ export default function PlatformModal({ open, onClose, editing }) {
       <div className="form-group">
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
           <label className="form-label" style={{ margin: 0 }}>아이콘 추가 (선택)</label>
-          <span className="form-hint" style={{ margin: 0 }}>투명 이미지로 업로드해주세요.</span>
+          <span className="form-hint" style={{ margin: 0 }}>권장 크기: 240X240, 투명 이미지로 업로드해주세요.</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {previewSrc && (
