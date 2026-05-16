@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '/supabase.js'
+import { supabase } from '../lib/supabase'
 
 const QK = ['platforms']
 
