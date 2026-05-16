@@ -13,5 +13,16 @@ export default defineConfig({
     commonjsOptions: {
       include: [/node_modules/],
     },
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('@tiptap')) return 'tiptap-vendor'
+          if (id.includes('@supabase')) return 'supabase-vendor'
+          if (id.includes('@tanstack')) return 'query-vendor'
+          if (id.includes('node_modules/react') || id.includes('react-router-dom')) return 'react-vendor'
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
   },
 })
