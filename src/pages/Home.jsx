@@ -32,8 +32,10 @@ export default function Home() {
         {platforms.map(p => (
           <div key={p.id} className="card platform-entry-card" onClick={() => navigate(`/${p.id}`)}>
             <div className="card-header" style={{ pointerEvents: 'none' }}>
-              <div className="card-step-badge accent" style={{ fontSize: 18, width: 40, height: 40 }}>
-                {p.icon || '📖'}
+              <div className="card-step-badge accent" style={{ width: 40, height: 40, overflow: 'hidden' }}>
+                {p.icon?.startsWith('http')
+                  ? <img src={p.icon} alt="" className="platform-icon-img" />
+                  : null}
               </div>
               <div className="card-meta">
                 <div className="card-title">{p.label}</div>

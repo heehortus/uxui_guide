@@ -7,17 +7,6 @@ import BlockModal from '../components/modals/BlockModal'
 import StepModal from '../components/modals/StepModal'
 import { useToast } from '../context/ToastContext'
 
-const BLOCK_TYPES = [
-  { value: 'default', label: '일반' },
-  { value: 'tip',     label: '팁' },
-  { value: 'warning', label: '주의' },
-  { value: 'info',    label: '안내' },
-  { value: 'process', label: '프로세스' },
-  { value: 'links',   label: '링크 목록' },
-  { value: 'kakao',   label: '안내 템플릿' },
-  { value: 'code',    label: '코드' },
-  { value: 'file',    label: '파일 첨부' },
-]
 
 export default function StepPage() {
   const { platformId, stepId } = useParams()
@@ -58,23 +47,14 @@ export default function StepPage() {
 
       <div className="section-header">
         <div className="section-title">Content</div>
+        <button className="btn btn-primary btn-sm" onClick={() => setAddBlock('default')}>
+          + 블록 추가
+        </button>
       </div>
 
       <div className="content-blocks">
         {(step.blocks ?? []).map(block => (
           <Block key={block.id} block={block} stepId={stepId} />
-        ))}
-      </div>
-
-      {/* 블록 추가 버튼 영역 */}
-      <div className="add-block-area">
-        <span style={{ fontSize: 12, color: 'var(--on-surface-variant)', alignSelf: 'center', marginRight: 4 }}>
-          블록 추가:
-        </span>
-        {BLOCK_TYPES.map(t => (
-          <button key={t.value} className="add-block-btn" onClick={() => setAddBlock(t.value)}>
-            {t.label}
-          </button>
         ))}
       </div>
 
