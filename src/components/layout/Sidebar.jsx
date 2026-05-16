@@ -31,12 +31,11 @@ export default function Sidebar() {
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <div className="sidebar-logo-badge">U</div>
             <div>
-              <div className="sidebar-title">UXUI 개발 플로우 가이드</div>
+              <div className="sidebar-title">UXUI 개발 가이드</div>
             </div>
           </div>
-          <div className="sidebar-subtitle">Alpha/Abbg 내부 문서</div>
+          <div className="sidebar-subtitle">Alpha Brothers/ABBG UXUI팀 문서</div>
         </div>
 
         <nav className="sidebar-nav">
@@ -45,11 +44,8 @@ export default function Sidebar() {
             className={`nav-item${!platformId ? ' active' : ''}`}
             onClick={() => navigate('/')}
           >
-            <span style={{ fontSize: 15, lineHeight: 1 }}>⌂</span>
             <span>홈</span>
           </div>
-          <div className="nav-divider" />
-
           {/* 플랫폼 그룹 */}
           {platforms.map(p => (
             <PlatformGroup
@@ -62,12 +58,7 @@ export default function Sidebar() {
               onClickPlatform={() => handleNavPlatform(p.id)}
               onClickStep={(sid) => navigate(`/${p.id}/${sid}`)}
             />
-          ))}
-
-          <div className="nav-divider" />
-          <button className="nav-add-platform-btn" onClick={() => setAddPlatform(true)}>
-            ＋ 가이드북 추가
-          </button>
+          ))}          
         </nav>
       </aside>
 

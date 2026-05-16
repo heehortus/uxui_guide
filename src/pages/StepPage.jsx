@@ -15,6 +15,8 @@ const BLOCK_TYPES = [
   { value: 'process', label: '프로세스' },
   { value: 'links',   label: '링크 목록' },
   { value: 'kakao',   label: '안내 템플릿' },
+  { value: 'code',    label: '코드' },
+  { value: 'file',    label: '파일 첨부' },
 ]
 
 export default function StepPage() {

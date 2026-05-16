@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import Modal from '../ui/Modal'
 import { useCreateBlock, useUpdateBlock } from '../../hooks/useBlocks'
 import { useToast } from '../../context/ToastContext'
+import { supabase } from '../../lib/supabase'
 
 const TYPES = [
   { value: 'default', label: '일반' },
@@ -11,16 +12,22 @@ const TYPES = [
   { value: 'process', label: '프로세스' },
   { value: 'links',   label: '링크 목록' },
   { value: 'kakao',   label: '카톡 템플릿' },
+  { value: 'code',    label: '코드' },
+  { value: 'file',    label: '파일 첨부' },
 ]
-const SPECIAL = ['links', 'kakao']
-const ITEM_ICONS = { tip: '💡', warning: '⚠️', info: 'ℹ️', default: '•' }
+const SPECIAL = ['links', 'kakao', 'code', 'file']
+const ITEM_ICONS = { tip: '💡', warning: '⚠️', info: 'ℹ️', default: '•', code: '<>', file: '📎' }
 
 export default function BlockModal({ open, onClose, stepId, editing }) {
   const [type, setType] = useState('default')
   const [label, setLabel] = useState('')
   const [content, setContent] = useState('')
-  const [linksContent, setLinksContent] = useState('')
+  const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', note: '', code: '' }])
   const [kakaoContent, setKakaoContent] = useState('')
+  const [codeContent, setCodeContent] = useState('')
+  const [fileContent, setFileContent] = useState('')   // stored as "name|url|size\n..."
+  const [pendingFiles, setPendingFiles] = useState([]) // File objects not yet uploaded
+  const [uploading, setUploading] = useState(false)
   const [items, setItems] = useState([])
 
   const toast = useToast()
@@ -32,23 +39,36 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
     if (open) {
       setType(editing?.type ?? 'default')
       setLabel(editing?.label ?? '')
+      setContent('')
+      setKakaoContent('')
+      setCodeContent('')
+      setFileContent('')
+      setPendingFiles([])
       if (editing?.type === 'links') {
-        setLinksContent(editing?.content ?? '')
-        setContent('')
+        const rows = (editing?.content ?? '').split('\n').filter(Boolean)
+        setLinkItems(rows.length > 0
+          ? rows.map(r => {
+              const [name = '', type = '', url = '', note = '', code = ''] = r.split('|').map(s => s?.trim() ?? '')
+              return { name, type, url, note, code: code.replace(/\\n/g, '\n') }
+            })
+          : [{ name: '', type: '', url: '', note: '', code: '' }]
+        )
       } else if (editing?.type === 'kakao') {
         setKakaoContent(editing?.content ?? '')
-        setContent('')
+      } else if (editing?.type === 'code') {
+        setCodeContent(editing?.content ?? '')
+      } else if (editing?.type === 'file') {
+        setFileContent(editing?.content ?? '')
       } else {
         setContent(editing?.content ?? '')
-        setLinksContent('')
-        setKakaoContent('')
       }
       setItems((editing?.block_items ?? []).map(it => ({ type: it.type, text: it.text })))
     }
   }, [open, editing])
 
   function addItem(itemType) {
-    setItems(prev => [...prev, { type: itemType, text: '' }])
+    const newItem = { type: itemType, text: '' }
+    setItems(prev => itemType === 'file' ? [newItem, ...prev] : [...prev, newItem])
   }
   function removeItem(idx) {
     setItems(prev => prev.filter((_, i) => i !== idx))
@@ -56,11 +76,76 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
   function updateItem(idx, text) {
     setItems(prev => prev.map((it, i) => i === idx ? { ...it, text } : it))
   }
+  function updateItemFile(idx, file) {
+    setItems(prev => prev.map((it, i) => i === idx ? { ...it, _file: file, text: it.text } : it))
+  }
 
   async function handleSave() {
-    const actualContent = type === 'links' ? linksContent : type === 'kakao' ? kakaoContent : content
-    const validItems = items.filter(it => it.text.trim())
-    if (!actualContent.trim() && validItems.length === 0) {
+    let actualContent
+    if (type === 'links') {
+      actualContent = linkItems
+        .filter(it => it.name.trim() || it.url.trim())
+        .map(it => `${it.name}|${it.type}|${it.url}|${it.note}|${it.code.replace(/\n/g, '\\n')}`)
+        .join('\n')
+    }
+    else if (type === 'kakao') actualContent = kakaoContent
+    else if (type === 'code') actualContent = codeContent
+    else if (type === 'file') {
+      const existingLines = fileContent ? fileContent.split('\n').filter(Boolean) : []
+      const newLines = []
+      if (pendingFiles.length > 0) {
+        setUploading(true)
+        try {
+          for (const f of pendingFiles) {
+            const ext = f.name.split('.').pop()
+            const path = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+            const { error } = await supabase.storage.from('uploads').upload(path, f)
+            if (error) throw error
+            const { data: urlData } = supabase.storage.from('uploads').getPublicUrl(path)
+            newLines.push(`${f.name}|${urlData.publicUrl}|${f.size}`)
+          }
+        } catch (err) {
+          toast('파일 업로드 실패: ' + err.message)
+          setUploading(false)
+          return
+        }
+        setUploading(false)
+      }
+      // 새 파일을 항상 맨 위로
+      actualContent = [...newLines, ...existingLines].join('\n')
+    } else {
+      actualContent = content
+    }
+
+    // Upload any file-type inline items
+    let resolvedItems = items
+    const hasFileItems = items.some(it => it.type === 'file' && (it._file || it.text))
+    if (hasFileItems) {
+      setUploading(true)
+      try {
+        resolvedItems = await Promise.all(items.map(async it => {
+          if (it.type === 'file' && it._file) {
+            const ext = it._file.name.split('.').pop()
+            const path = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+            const { error } = await supabase.storage.from('uploads').upload(path, it._file)
+            if (error) throw error
+            const { data: urlData } = supabase.storage.from('uploads').getPublicUrl(path)
+            return { type: 'file', text: `${it._file.name}|${urlData.publicUrl}|${it._file.size}` }
+          }
+          return { type: it.type, text: it.text }
+        }))
+      } catch (err) {
+        toast('파일 업로드 실패: ' + err.message)
+        setUploading(false)
+        return
+      }
+      setUploading(false)
+    }
+
+    const validItems = resolvedItems
+      .filter(it => it.text?.trim())
+      .sort((a, b) => (a.type === 'file' ? -1 : b.type === 'file' ? 1 : 0))
+    if (!actualContent?.trim() && validItems.length === 0) {
       toast('내용이나 항목을 입력해주세요.')
       return
     }
@@ -68,7 +153,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       step_id: stepId,
       type,
       label: label.trim(),
-      content: actualContent.trim(),
+      content: actualContent?.trim() ?? '',
       items: validItems,
     }
     if (editing) {
@@ -88,8 +173,8 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       footer={
         <>
           <button className="btn btn-secondary" onClick={onClose}>취소</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={isPending}>
-            {isPending ? '저장 중…' : '저장'}
+          <button className="btn btn-primary" onClick={handleSave} disabled={isPending || uploading}>
+            {uploading ? '업로드 중…' : isPending ? '저장 중…' : '저장'}
           </button>
         </>
       }
@@ -131,13 +216,52 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       {type === 'links' && (
         <div className="form-group">
           <label className="form-label">링크 목록</label>
-          <div className="form-hint" style={{ marginBottom: 8 }}>
-            한 줄에 하나씩: <code style={{ background: 'var(--surface-container)', padding: '1px 6px', borderRadius: 4 }}>가이드명 | 유형 | URL | 비고(선택)</code>
+          <div className="link-items-list">
+            {linkItems.map((item, i) => (
+              <div key={i} className="link-item-block">
+                <div className="link-item-row">
+                  <input
+                    className="form-input link-item-name"
+                    value={item.name}
+                    onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, name: e.target.value } : it))}
+                    placeholder="가이드명"
+                  />
+                  <input
+                    className="form-input link-item-type"
+                    value={item.type}
+                    onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, type: e.target.value } : it))}
+                    placeholder="유형"
+                  />
+                  <input
+                    className="form-input link-item-url"
+                    value={item.url}
+                    onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, url: e.target.value } : it))}
+                    placeholder="https://..."
+                  />
+                  <button className="modal-item-remove" onClick={() => setLinkItems(prev => prev.filter((_, j) => j !== i))}>×</button>
+                </div>
+                <input
+                  className="form-input"
+                  value={item.note}
+                  onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, note: e.target.value } : it))}
+                  placeholder="비고 (선택)"
+                />
+                <textarea
+                  className="form-textarea code-textarea link-item-code"
+                  value={item.code}
+                  onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, code: e.target.value } : it))}
+                  placeholder="코드 (선택)"
+                  spellCheck={false}
+                />
+              </div>
+            ))}
           </div>
-          <textarea className="form-textarea" value={linksContent}
-            onChange={e => setLinksContent(e.target.value)}
-            placeholder={'쇼핑 위젯 설정 | 쇼핑 | https://imweb.me/...\n구글 지도 삽입 | 디자인 | https://imweb.me/...'}
-          />
+          <button
+                  className="link-item-add-btn"
+                  onClick={() => setLinkItems(prev => [...prev, { name: '', type: '', url: '', code: '', note: '' }])}
+                >
+                  + 항목 추가
+          </button>
         </div>
       )}
 
@@ -157,37 +281,141 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         </div>
       )}
 
+      {/* 코드 블록 */}
+      {type === 'code' && (
+        <div className="form-group">
+          <label className="form-label">코드</label>
+          <textarea
+            className="form-textarea code-textarea"
+            value={codeContent}
+            onChange={e => setCodeContent(e.target.value)}
+            placeholder="코드를 입력하세요"
+            spellCheck={false}
+          />
+        </div>
+      )}
+
+      {/* 파일 첨부 */}
+      {type === 'file' && (
+        <div className="form-group">
+          <label className="form-label">파일 첨부</label>
+          <div
+            className="file-dropzone"
+            onClick={() => document.getElementById('file-upload-input').click()}
+            onDragOver={e => e.preventDefault()}
+            onDrop={e => {
+              e.preventDefault()
+              const files = Array.from(e.dataTransfer.files)
+              setPendingFiles(prev => [...prev, ...files])
+            }}
+          >
+            <span>📎 클릭하거나 파일을 여기에 드래그하세요</span>
+            <input
+              id="file-upload-input"
+              type="file"
+              multiple
+              style={{ display: 'none' }}
+              onChange={e => {
+                const files = Array.from(e.target.files)
+                setPendingFiles(prev => [...prev, ...files])
+                e.target.value = ''
+              }}
+            />
+          </div>
+          {/* 기존 업로드 파일 */}
+          {fileContent && fileContent.split('\n').filter(Boolean).map((row, i) => {
+            const [name] = row.split('|')
+            return (
+              <div key={i} className="file-pending-item">
+                <span>📎 {name}</span>
+                <button className="modal-item-remove" onClick={() => {
+                  const lines = fileContent.split('\n').filter(Boolean)
+                  lines.splice(i, 1)
+                  setFileContent(lines.join('\n'))
+                }}>×</button>
+              </div>
+            )
+          })}
+          {/* 새로 추가된 파일 */}
+          {pendingFiles.map((f, i) => (
+            <div key={i} className="file-pending-item new">
+              <span>📎 {f.name} <span className="file-size-hint">({formatFileSize(f.size)})</span></span>
+              <button className="modal-item-remove" onClick={() => setPendingFiles(prev => prev.filter((_, j) => j !== i))}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* 팁 · 주의 항목 */}
       <div className="modal-items-section">
         <div className="modal-items-header">
-          <span className="modal-items-label">팁 · 주의 항목</span>
+          <span className="modal-items-label">항목 추가</span>
           {items.length > 0 && <span className="modal-items-count">{items.length}개</span>}
         </div>
         <div>
           {items.map((item, i) => (
             <div key={i} className={`modal-item-row type-${item.type}`}>
-              <span className="modal-item-icon">{ITEM_ICONS[item.type] || '•'}</span>
-              <AutoTextarea
-                value={item.text}
-                onChange={text => updateItem(i, text)}
-                placeholder="내용을 입력하세요"
-              />
+              {item.type === 'file' ? (
+                <div className="modal-item-file">
+                  {item._file || item.text ? (
+                    <span className="modal-item-file-name">
+                      {item._file ? item._file.name : item.text.split('|')[0]}
+                      {item._file && <span className="file-size-hint"> ({formatFileSize(item._file.size)})</span>}
+                    </span>
+                  ) : (
+                    <label className="modal-item-file-label">
+                      파일 선택
+                      <input
+                        type="file"
+                        style={{ display: 'none' }}
+                        onChange={e => { if (e.target.files[0]) updateItemFile(i, e.target.files[0]) }}
+                      />
+                    </label>
+                  )}
+                  {(item._file || item.text) && (
+                    <label className="modal-item-file-change">
+                      변경
+                      <input
+                        type="file"
+                        style={{ display: 'none' }}
+                        onChange={e => { if (e.target.files[0]) updateItemFile(i, e.target.files[0]) }}
+                      />
+                    </label>
+                  )}
+                </div>
+              ) : (
+                <AutoTextarea
+                  value={item.text}
+                  onChange={text => updateItem(i, text)}
+                  placeholder={item.type === 'code' ? '코드를 입력하세요' : '내용을 입력하세요'}
+                  isCode={item.type === 'code'}
+                />
+              )}
               <button className="modal-item-remove" onClick={() => removeItem(i)}>×</button>
             </div>
           ))}
         </div>
         <div className="modal-items-add-btns">
-          <button className="modal-item-add-btn type-tip"     onClick={() => addItem('tip')}>💡 팁 추가</button>
-          <button className="modal-item-add-btn type-warning" onClick={() => addItem('warning')}>⚠️ 주의 추가</button>
-          <button className="modal-item-add-btn type-info"    onClick={() => addItem('info')}>ℹ️ 안내 추가</button>
-          <button className="modal-item-add-btn type-default" onClick={() => addItem('default')}>• 일반 추가</button>
+          <button className="modal-item-add-btn" onClick={() => addItem('default')}>일반</button>
+          <button className="modal-item-add-btn" onClick={() => addItem('tip')}>팁</button>
+          <button className="modal-item-add-btn" onClick={() => addItem('warning')}>주의</button>
+          <button className="modal-item-add-btn" onClick={() => addItem('info')}>안내</button>
+          <button className="modal-item-add-btn" onClick={() => addItem('code')}>코드</button>
+          <button className="modal-item-add-btn" onClick={() => addItem('file')}>파일</button>
         </div>
       </div>
     </Modal>
   )
 }
 
-function AutoTextarea({ value, onChange, placeholder }) {
+function formatFileSize(bytes) {
+  if (!bytes || isNaN(bytes)) return ''
+  if (bytes < 1024) return `${bytes}B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
+}
+
+function AutoTextarea({ value, onChange, placeholder, isCode }) {
   const ref = useRef(null)
   useEffect(() => {
     if (ref.current) {
@@ -198,11 +426,12 @@ function AutoTextarea({ value, onChange, placeholder }) {
   return (
     <textarea
       ref={ref}
-      className="modal-item-input"
+      className={`modal-item-input${isCode ? ' modal-item-code' : ''}`}
       rows={1}
       value={value}
       placeholder={placeholder}
       onChange={e => onChange(e.target.value)}
+      spellCheck={false}
     />
   )
 }
