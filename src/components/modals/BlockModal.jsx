@@ -15,7 +15,7 @@ const TYPES = [
   { value: 'code',    label: '코드' },
   { value: 'file',    label: '파일 첨부' },
 ]
-const SPECIAL = ['links', 'kakao', 'code', 'file']
+const SPECIAL = ['links', 'kakao', 'code', 'file', 'process']
 const ITEM_ICONS = { tip: '💡', warning: '⚠️', info: 'ℹ️', default: '•', code: '<>', file: '📎' }
 
 export default function BlockModal({ open, onClose, stepId, editing }) {
@@ -23,6 +23,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
   const [label, setLabel] = useState('')
   const [content, setContent] = useState('')
   const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', note: '', code: '' }])
+  const [processItems, setProcessItems] = useState([{ title: '', desc: '' }])
   const [kakaoContent, setKakaoContent] = useState('')
   const [codeContent, setCodeContent] = useState('')
   const [fileContent, setFileContent] = useState('')   // stored as "name|url|size\n..."
@@ -44,7 +45,16 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       setCodeContent('')
       setFileContent('')
       setPendingFiles([])
-      if (editing?.type === 'links') {
+      if (editing?.type === 'process') {
+        const rows = (editing?.content ?? '').split('\n').filter(Boolean)
+        setProcessItems(rows.length > 0
+          ? rows.map(r => {
+              const [title = '', desc = ''] = r.split('|').map(s => s?.trim() ?? '')
+              return { title, desc }
+            })
+          : [{ title: '', desc: '' }]
+        )
+      } else if (editing?.type === 'links') {
         const rows = (editing?.content ?? '').split('\n').filter(Boolean)
         setLinkItems(rows.length > 0
           ? rows.map(r => {
@@ -82,7 +92,12 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
 
   async function handleSave() {
     let actualContent
-    if (type === 'links') {
+    if (type === 'process') {
+      actualContent = processItems
+        .filter(it => it.title.trim())
+        .map(it => `${it.title}|${it.desc}`)
+        .join('\n')
+    } else if (type === 'links') {
       actualContent = linkItems
         .filter(it => it.name.trim() || it.url.trim())
         .map(it => `${it.name}|${it.type}|${it.url}|${it.note}|${it.code.replace(/\n/g, '\\n')}`)
@@ -209,6 +224,42 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
           <textarea className="form-textarea" value={content} onChange={e => setContent(e.target.value)}
             placeholder="내용을 입력하세요. URL은 자동으로 링크 처리됩니다." />
           <span className="form-hint">줄 바꿈 그대로 반영됩니다. URL은 자동 링크됩니다.</span>
+        </div>
+      )}
+
+      {/* 프로세스 */}
+      {type === 'process' && (
+        <div className="form-group">
+          <label className="form-label">프로세스 단계</label>
+          <div className="process-items-list">
+            {processItems.map((item, i) => (
+              <div key={i} className="process-item-block">
+                <div className="process-item-num">{i + 1}</div>
+                <div className="process-item-fields">
+                  <input
+                    className="form-input"
+                    value={item.title}
+                    onChange={e => setProcessItems(prev => prev.map((it, j) => j === i ? { ...it, title: e.target.value } : it))}
+                    placeholder="단계 제목"
+                  />
+                  <input
+                    className="form-input"
+                    value={item.desc}
+                    onChange={e => setProcessItems(prev => prev.map((it, j) => j === i ? { ...it, desc: e.target.value } : it))}
+                    placeholder="설명 (선택)"
+                  />
+                </div>
+                <button className="modal-item-remove" onClick={() => setProcessItems(prev => prev.filter((_, j) => j !== i))}>×</button>
+              </div>
+            ))}
+          </div>
+          <button
+            className="link-item-add-btn"
+            style={{ marginTop: 8 }}
+            onClick={() => setProcessItems(prev => [...prev, { title: '', desc: '' }])}
+          >
+            + 단계 추가
+          </button>
         </div>
       )}
 
