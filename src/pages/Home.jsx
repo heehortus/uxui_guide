@@ -16,7 +16,7 @@ export default function Home() {
         <div className="page-header-top">
           <div>
             <div className="page-title">홈페이지 개발 플로우 가이드</div>
-            <div className="page-desc">UXUI팀의 홈페이지 개발 가이드북입니다. 가이드북을 선택하세요.</div>
+            <div className="page-desc">UXUI팀의 홈페이지 개발 가이드북입니다. 자유롭게 둘러보세요.</div>
           </div>
           <button className="btn btn-primary" style={{ flexShrink: 0, marginTop: 4 }} onClick={() => setAddPlatform(true)}>
             ＋ 가이드북 추가

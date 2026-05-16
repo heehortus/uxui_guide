@@ -3,6 +3,23 @@ import { supabase } from '../lib/supabase'
 
 const QK = (platformId) => ['steps', platformId]
 
+export function useSearchSteps(query) {
+  return useQuery({
+    queryKey: ['steps-search', query],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('steps')
+        .select('id, title, subtitle, number, platform_id, platforms(label)')
+        .or(`title.ilike.%${query}%,subtitle.ilike.%${query}%`)
+        .order('platform_id')
+        .limit(20)
+      if (error) throw error
+      return data
+    },
+    enabled: query.trim().length > 0,
+  })
+}
+
 export function useSteps(platformId) {
   return useQuery({
     queryKey: QK(platformId),
