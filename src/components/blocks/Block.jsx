@@ -10,8 +10,6 @@ import CodeBlock from './CodeBlock'
 import FileBlock from './FileBlock'
 import { MediaItems, InlineItems } from './MediaItems'
 
-const COPYABLE = ['code', 'kakao']
-
 function DotsIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -24,7 +22,6 @@ function DotsIcon() {
 
 export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
   const [editing, setEditing] = useState(false)
-  const [copied, setCopied] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const deleteBlock = useDeleteBlock()
   const toast = useToast()
@@ -36,27 +33,7 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
     toast('삭제되었습니다.')
   }
 
-  function handleCopy() {
-    setMenuOpen(false)
-    const text = block.content || ''
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    }).catch(() => {
-      const ta = document.createElement('textarea')
-      ta.value = text
-      ta.style.position = 'fixed'; ta.style.opacity = '0'
-      document.body.appendChild(ta)
-      ta.select()
-      document.execCommand('copy')
-      document.body.removeChild(ta)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
   const typeClass = block.type === 'default' ? '' : `block-${block.type}`
-  const canCopy = COPYABLE.includes(block.type)
 
   return (
     <>
@@ -68,11 +45,6 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
 
         {/* 데스크탑 액션 버튼 */}
         <div className="block-actions">
-          {canCopy && (
-            <button className={`btn btn-ghost btn-sm${copied ? ' copied' : ''}`} onClick={handleCopy}>
-              {copied ? '복사됨 ✓' : '복사'}
-            </button>
-          )}
           <button className="btn btn-ghost btn-sm" onClick={() => setEditing(true)}>수정</button>
           <button className="btn btn-ghost btn-sm" style={{ color: 'var(--destructive)' }} onClick={handleDelete}>
             삭제
@@ -95,11 +67,6 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
         <div className="block-action-sheet-overlay" onClick={() => setMenuOpen(false)}>
           <div className="block-action-sheet" onClick={e => e.stopPropagation()}>
             <div className="block-action-sheet-handle" />
-            {canCopy && (
-              <button className="block-action-sheet-item" onClick={handleCopy}>
-                {copied ? '복사됨 ✓' : '복사'}
-              </button>
-            )}
             <button className="block-action-sheet-item" onClick={() => { setMenuOpen(false); setEditing(true) }}>
               수정
             </button>
