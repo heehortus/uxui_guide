@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
@@ -40,6 +41,14 @@ export default function RichEditor({ value, onChange, placeholder }) {
       attributes: { class: 'rich-editor-content' },
     },
   })
+
+  // 외부에서 value가 바뀔 때 (모달 열기/다른 블록 수정 등) 에디터 내용 동기화
+  useEffect(() => {
+    if (!editor) return
+    if (editor.getHTML() !== (value || '')) {
+      editor.commands.setContent(value || '', false)
+    }
+  }, [value, editor])
 
   return (
     <div className="rich-editor">
