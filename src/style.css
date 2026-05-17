@@ -1285,6 +1285,10 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   background: var(--surface-container);
   padding: 2px 8px; border-radius: var(--radius-full);
 }
+.modal-item-order-btns {
+  display: flex; flex-direction: column; gap: 1px;
+  flex-shrink: 0; padding-top: 4px;
+}
 .modal-item-row {
   display: flex; align-items: flex-start; gap: 8px;
   padding: 6px 10px; border-radius: var(--radius-md);

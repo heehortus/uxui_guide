@@ -100,6 +100,15 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
   function updateItemFile(idx, file) {
     setItems(prev => prev.map((it, i) => i === idx ? { ...it, _file: file, text: it.text } : it))
   }
+  function moveItem(idx, dir) {
+    setItems(prev => {
+      const next = [...prev]
+      const swap = idx + dir
+      if (swap < 0 || swap >= next.length) return prev
+      ;[next[idx], next[swap]] = [next[swap], next[idx]]
+      return next
+    })
+  }
 
   async function handleSave() {
     let actualContent
@@ -463,6 +472,10 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         <div>
           {items.map((item, i) => (
             <div key={i} className={`modal-item-row type-${item.type}`}>
+              <div className="modal-item-order-btns">
+                <button className="process-order-btn" disabled={i === 0} onClick={() => moveItem(i, -1)}>▲</button>
+                <button className="process-order-btn" disabled={i === items.length - 1} onClick={() => moveItem(i, 1)}>▼</button>
+              </div>
               {item.type === 'file' ? (
                 <div className="modal-item-file">
                   {item._file || item.text ? (
