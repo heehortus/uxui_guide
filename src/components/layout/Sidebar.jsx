@@ -86,7 +86,12 @@ export default function Sidebar() {
               {/* 검색 */}
               <div className="sidebar-search-wrap">
                 <div className="sidebar-search-box">
-                  <span className="sidebar-search-icon">⌕</span>
+                  <span className="sidebar-search-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="7" />
+                      <line x1="16.5" y1="16.5" x2="22" y2="22" />
+                    </svg>
+                  </span>
                   <input
                     ref={searchRef}
                     className="sidebar-search-input"

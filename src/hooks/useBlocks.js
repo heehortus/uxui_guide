@@ -62,6 +62,24 @@ export function useUpdateBlock() {
   })
 }
 
+export function useReorderBlocks() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ step_id, blocks }) => {
+      // blocks: [{id, order_index}, ...]
+      await Promise.all(
+        blocks.map(({ id, order_index }) =>
+          supabase.from('blocks').update({ order_index }).eq('id', id)
+        )
+      )
+      return { step_id }
+    },
+    onSuccess: ({ step_id }) => {
+      qc.invalidateQueries({ queryKey: ['step', step_id] })
+    },
+  })
+}
+
 export function useDeleteBlock() {
   const qc = useQueryClient()
   return useMutation({

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { usePlatforms, useDeletePlatform } from '../hooks/usePlatforms'
 import { useSteps } from '../hooks/useSteps'
 import PlatformModal from '../components/modals/PlatformModal'
+import PageActionsMenu from '../components/ui/PageActionsMenu'
 import { useToast } from '../context/ToastContext'
 
 export default function PlatformPage() {
@@ -34,10 +35,10 @@ export default function PlatformPage() {
             <div className="page-title">{platform.label}</div>
             <div className="page-desc">{platform.description}</div>
           </div>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginTop: 4 }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => setEditing(true)}>수정</button>
-            <button className="btn btn-danger btn-sm" onClick={handleDelete}>삭제</button>
-          </div>
+          <PageActionsMenu actions={[
+            { label: '수정', onClick: () => setEditing(true) },
+            { label: '삭제', onClick: handleDelete, danger: true },
+          ]} />
         </div>
       </div>
 
