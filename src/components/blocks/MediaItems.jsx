@@ -47,7 +47,10 @@ export function InlineItems({ items }) {
                     </a>
                   )
                 })()
-              : <span className="tiplist-text" dangerouslySetInnerHTML={{ __html: linkifyText(item.text) }} />
+              : (() => {
+                  const isHtml = /^<[a-z]/i.test((item.text || '').trimStart())
+                  return <span className="tiplist-text rich-content" dangerouslySetInnerHTML={{ __html: isHtml ? item.text : linkifyText(item.text) }} />
+                })()
             }
           </div>
         ))}

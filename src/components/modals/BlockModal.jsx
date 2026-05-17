@@ -469,14 +469,10 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
                     </label>
                   )}
                 </div>
-              ) : (
-                <AutoTextarea
-                  value={item.text}
-                  onChange={text => updateItem(i, text)}
-                  placeholder={item.type === 'code' ? '코드를 입력하세요' : '내용을 입력하세요'}
-                  isCode={item.type === 'code'}
-                />
-              )}
+              ) : item.type === 'code'
+                ? <AutoTextarea value={item.text} onChange={text => updateItem(i, text)} placeholder="코드를 입력하세요" isCode />
+                : <RichEditor value={item.text} onChange={text => updateItem(i, text)} placeholder="내용을 입력하세요" />
+              }
               <button className="modal-item-remove" onClick={() => removeItem(i)}>×</button>
             </div>
           ))}
