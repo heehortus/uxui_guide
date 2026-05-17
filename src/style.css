@@ -389,7 +389,6 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   justify-content: space-between;
   margin-bottom: var(--space-md);
   padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--outline-variant);
 }
 .section-title { font-size: 18px; font-weight: 500; letter-spacing: -0.005em; }
 
@@ -450,7 +449,6 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .step-nav {
   margin-top: 48px;
   padding-top: 24px;
-  border-top: 1px solid var(--outline-variant);
 }
 .step-nav-btn-wrap {
   display: flex;
