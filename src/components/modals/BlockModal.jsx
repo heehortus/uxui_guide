@@ -248,7 +248,29 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
           <div className="process-items-list">
             {processItems.map((item, i) => (
               <div key={i} className="process-item-block">
-                <div className="process-item-num">{i + 1}</div>
+                <div className="process-item-left">
+                  <div className="process-item-num">{i + 1}</div>
+                  <div className="process-item-order-btns">
+                    <button
+                      className="process-order-btn"
+                      disabled={i === 0}
+                      onClick={() => setProcessItems(prev => {
+                        const next = [...prev]
+                        ;[next[i - 1], next[i]] = [next[i], next[i - 1]]
+                        return next
+                      })}
+                    >▲</button>
+                    <button
+                      className="process-order-btn"
+                      disabled={i === processItems.length - 1}
+                      onClick={() => setProcessItems(prev => {
+                        const next = [...prev]
+                        ;[next[i], next[i + 1]] = [next[i + 1], next[i]]
+                        return next
+                      })}
+                    >▼</button>
+                  </div>
+                </div>
                 <div className="process-item-fields">
                   <input
                     className="form-input"
@@ -256,8 +278,8 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
                     onChange={e => setProcessItems(prev => prev.map((it, j) => j === i ? { ...it, title: e.target.value } : it))}
                     placeholder="단계 제목"
                   />
-                  <input
-                    className="form-input"
+                  <textarea
+                    className="form-input process-item-desc"
                     value={item.desc}
                     onChange={e => setProcessItems(prev => prev.map((it, j) => j === i ? { ...it, desc: e.target.value } : it))}
                     placeholder="설명 (선택)"
