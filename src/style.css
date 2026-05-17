@@ -394,6 +394,22 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 
 /* ─── Cards ──────────────────────────────────── */
 .card-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: var(--space-lg); }
+.card-wrap {
+  position: relative;
+}
+.step-order-handle {
+  position: absolute;
+  left: -32px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 150ms;
+}
+.card-wrap:hover .step-order-handle { opacity: 1; }
+.step-card-mobile-btns { display: none; }
 .card {
   background: var(--surface);
   border: 1px solid var(--outline-variant);
@@ -1372,8 +1388,16 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   .sidebar.open { left: 0; }
   .content { padding: var(--space-md); }
 
-  /* 블록 순서 버튼: 모바일에서는 숨김 (액션 시트로 대체) */
+  /* 블록/단계 순서 버튼: 모바일에서는 숨김 (다른 방식으로 대체) */
   .block-order-handle { display: none; }
+  .step-order-handle { display: none; }
+  .step-card-mobile-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-left: auto;
+    margin-right: 4px;
+  }
 
   /* 데스크탑 액션 버튼 숨김, 6-dot 버튼 표시 */
   .block-label { padding-right: 36px;}

@@ -107,6 +107,21 @@ export function useUpdateStep() {
   })
 }
 
+export function useReorderSteps() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ platform_id, steps }) => {
+      await Promise.all(steps.map(({ id, order_index }) =>
+        supabase.from('steps').update({ order_index }).eq('id', id)
+      ))
+      return { platform_id }
+    },
+    onSuccess: ({ platform_id }) => {
+      qc.invalidateQueries({ queryKey: QK(platform_id) })
+    },
+  })
+}
+
 export function useDeleteStep() {
   const qc = useQueryClient()
   return useMutation({

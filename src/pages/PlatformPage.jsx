@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { usePlatforms, useDeletePlatform } from '../hooks/usePlatforms'
-import { useSteps } from '../hooks/useSteps'
+import { useSteps, useReorderSteps } from '../hooks/useSteps'
 import PlatformModal from '../components/modals/PlatformModal'
 import PageActionsMenu from '../components/ui/PageActionsMenu'
 import { useToast } from '../context/ToastContext'
@@ -14,7 +14,22 @@ export default function PlatformPage() {
   const { data: platforms = [] } = usePlatforms()
   const { data: steps = [], isLoading } = useSteps(platformId)
   const deletePlatform = useDeletePlatform()
+  const reorderSteps = useReorderSteps()
   const [editing, setEditing] = useState(false)
+
+  function handleMoveStep(steps, index, dir) {
+    const swapIndex = index + dir
+    if (swapIndex < 0 || swapIndex >= steps.length) return
+    const a = steps[index]
+    const b = steps[swapIndex]
+    reorderSteps.mutate({
+      platform_id: platformId,
+      steps: [
+        { id: a.id, order_index: b.order_index },
+        { id: b.id, order_index: a.order_index },
+      ],
+    })
+  }
 
   const platform = platforms.find(p => p.id === platformId)
 
@@ -56,22 +71,41 @@ export default function PlatformPage() {
         </div>
       ) : (
         <div className="card-list">
-          {steps.map(step => (
-            <div
-              key={step.id}
-              className="card"
-              style={{ cursor: 'pointer' }}
-              onClick={() => navigate(`/${platformId}/${step.id}`)}
-            >
-              <div className="card-header" style={{ pointerEvents: 'none' }}>
-                <div className={`card-step-badge${step.number === '00' ? ' accent' : ''}`}>
-                  {step.number}
+          {steps.map((step, i, arr) => (
+            <div key={step.id} className="card-wrap">
+              <div className="step-order-handle">
+                <button
+                  className="block-order-btn"
+                  disabled={i === 0}
+                  onClick={() => handleMoveStep(arr, i, -1)}
+                  title="위로"
+                >▲</button>
+                <button
+                  className="block-order-btn"
+                  disabled={i === arr.length - 1}
+                  onClick={() => handleMoveStep(arr, i, 1)}
+                  title="아래로"
+                >▼</button>
+              </div>
+              <div
+                className="card"
+                style={{ cursor: 'pointer' }}
+                onClick={() => navigate(`/${platformId}/${step.id}`)}
+              >
+                <div className="card-header">
+                  <div className={`card-step-badge${step.number === '00' ? ' accent' : ''}`}>
+                    {step.number}
+                  </div>
+                  <div className="card-meta">
+                    <div className="card-title">{step.title}</div>
+                    {step.subtitle && <div className="card-subtitle">{step.subtitle}</div>}
+                  </div>
+                  <div className="step-card-mobile-btns" onClick={e => e.stopPropagation()}>
+                    <button className="block-order-btn" disabled={i === 0} onClick={() => handleMoveStep(arr, i, -1)}>▲</button>
+                    <button className="block-order-btn" disabled={i === arr.length - 1} onClick={() => handleMoveStep(arr, i, 1)}>▼</button>
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--on-surface-variant)', pointerEvents: 'none' }}>›</div>
                 </div>
-                <div className="card-meta">
-                  <div className="card-title">{step.title}</div>
-                  {step.subtitle && <div className="card-subtitle">{step.subtitle}</div>}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--on-surface-variant)' }}>›</div>
               </div>
             </div>
           ))}
