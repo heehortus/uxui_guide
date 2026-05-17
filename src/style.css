@@ -465,7 +465,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   transition: background 150ms, border-color 150ms;
 }
 .step-nav-btn:hover {
-  background: var(--primary-container);
+  background: var(--surface-dim);
 }
 .step-nav-btn--next { justify-content: flex-end; text-align: right; }
 .step-nav-btn--prev { justify-content: flex-start; text-align: left; }
@@ -1026,7 +1026,11 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   background: var(--surface-container-low);
   border: 1px solid var(--outline-variant);
 }
-.inline-media-items { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+.inline-media-items {
+  display: flex; flex-direction: row; flex-wrap: wrap;
+  gap: 12px; margin-bottom: 12px;
+  justify-content: center; align-items: flex-start;
+}
 .file-preview-clickable { cursor: zoom-in; }
 
 /* ─── Lightbox ───────────────────────────────── */
