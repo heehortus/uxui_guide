@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useUpdateBlock } from '../../hooks/useBlocks'
 import { IMAGE_EXT, VIDEO_EXT, getExt } from '../../lib/fileUtils'
 import CodeModal from './CodeModal'
+import Lightbox from './Lightbox'
 
 const BADGE = {
   쇼핑: 'shop', 예약: 'shop',
@@ -21,33 +22,18 @@ function serializeRows(rows) {
   return rows.map(r => `${r.name}|${r.type}|${r.url}|${r.file}|${r.code.replace(/\n/g, '\\n')}`).join('\n')
 }
 
-function LinkFile({ file }) {
+function parseFile(file) {
   if (!file) return null
-  // file format: "filename|url" or just a plain URL (legacy)
   const parts = file.split('|')
   const name = parts.length > 1 ? parts[0] : file
   const url  = parts.length > 1 ? parts[1] : file
   const ext  = getExt(name)
-
-  if (IMAGE_EXT.includes(ext)) {
-    return (
-      <a href={url} target="_blank" rel="noopener">
-        <img src={url} alt={name} className="link-file-thumb" />
-      </a>
-    )
-  }
-  if (VIDEO_EXT.includes(ext)) {
-    return <video src={url} className="link-file-thumb" muted playsInline controls />
-  }
-  return (
-    <a href={url} target="_blank" rel="noopener" download={name} className="link-file-dl">
-      📎 {name}
-    </a>
-  )
+  return { name, url, ext }
 }
 
 export default function LinksBlock({ block }) {
   const [codeModal, setCodeModal] = useState(null)
+  const [lightbox, setLightbox] = useState(null)
   const update = useUpdateBlock()
 
   const rows = parseRows(block.content)
@@ -95,7 +81,23 @@ export default function LinksBlock({ block }) {
                     )}
                   </td>
                   <td className="link-table-file-cell">
-                    <LinkFile file={row.file} />
+                    {(() => {
+                      const f = parseFile(row.file)
+                      if (!f) return null
+                      const isMedia = IMAGE_EXT.includes(f.ext) || VIDEO_EXT.includes(f.ext)
+                      if (isMedia) {
+                        return (
+                          <button className="link-code-btn link-file-btn" onClick={() => setLightbox(f)}>
+                            파일 ›
+                          </button>
+                        )
+                      }
+                      return (
+                        <a href={f.url} target="_blank" rel="noopener" download={f.name} className="link-code-btn link-file-btn">
+                          파일 ›
+                        </a>
+                      )
+                    })()}
                   </td>
                   <td>
                     {row.code && (
@@ -113,6 +115,10 @@ export default function LinksBlock({ block }) {
           </tbody>
         </table>
       </div>
+
+      {lightbox && (
+        <Lightbox {...lightbox} onClose={() => setLightbox(null)} />
+      )}
 
       {codeModal && (
         <CodeModal

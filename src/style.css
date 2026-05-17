@@ -653,6 +653,12 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   white-space: nowrap;
 }
 .link-code-btn:hover { background: rgba(122,175,255,0.2); }
+.link-file-btn {
+  color: var(--on-surface-variant);
+  background: var(--surface-container);
+  border-color: var(--outline-variant);
+}
+.link-file-btn:hover { background: var(--surface-container-high); }
 .link-table-file-cell { padding: 6px 12px; }
 .link-file-thumb {
   max-width: 120px;
