@@ -13,13 +13,13 @@ const BADGE = {
 
 function parseRows(content) {
   return (content || '').split('\n').filter(l => l.trim()).map(r => {
-    const [name = '', type = '', url = '', file = '', code = ''] = r.split('|').map(s => s?.trim() ?? '')
-    return { name, type, url, file, code: code.replace(/\\n/g, '\n') }
+    const [name = '', type = '', url = '', extra = '', code = ''] = r.split('|').map(s => s?.trim() ?? '')
+    return { name, type, url, extra, code: code.replace(/\\n/g, '\n') }
   })
 }
 
 function serializeRows(rows) {
-  return rows.map(r => `${r.name}|${r.type}|${r.url}|${r.file}|${r.code.replace(/\n/g, '\\n')}`).join('\n')
+  return rows.map(r => `${r.name}|${r.type}|${r.url}|${r.extra}|${r.code.replace(/\n/g, '\\n')}`).join('\n')
 }
 
 function parseFile(file) {
@@ -38,6 +38,8 @@ export default function LinksBlock({ block }) {
   const update = useUpdateBlock()
 
   const rows = parseRows(block.content)
+
+  const isFileType = block.type === 'links-file'
 
   async function handleCodeSave(idx, newCode) {
     const next = rows.map((r, i) => i === idx ? { ...r, code: newCode } : r)
@@ -65,7 +67,7 @@ export default function LinksBlock({ block }) {
       <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
         <table className="link-table">
           <thead>
-            <tr><th>가이드명</th><th>유형</th><th>링크</th><th>파일</th><th>코드</th></tr>
+            <tr><th>가이드명</th><th>유형</th><th>링크</th><th>{isFileType ? '파일' : '비고'}</th><th>코드</th></tr>
           </thead>
           <tbody>
             {rows.map((row, i) => {
@@ -82,23 +84,16 @@ export default function LinksBlock({ block }) {
                     )}
                   </td>
                   <td className="link-table-file-cell">
-                    {(() => {
-                      const f = parseFile(row.file)
+                    {isFileType ? (() => {
+                      const f = parseFile(row.extra)
                       if (!f) return null
                       const isMedia = IMAGE_EXT.includes(f.ext) || VIDEO_EXT.includes(f.ext)
-                      if (isMedia) {
-                        return (
-                          <button className="link-code-btn link-file-btn" onClick={() => setLightbox(f)}>
-                            파일 ›
-                          </button>
-                        )
-                      }
-                      return (
-                        <a href={f.url} target="_blank" rel="noopener" download={f.name} className="link-code-btn link-file-btn">
-                          파일 ›
-                        </a>
-                      )
-                    })()}
+                      return isMedia
+                        ? <button className="link-code-btn link-file-btn" onClick={() => setLightbox(f)}>파일 ›</button>
+                        : <a href={f.url} target="_blank" rel="noopener" download={f.name} className="link-code-btn link-file-btn">파일 ›</a>
+                    })() : (
+                      <span style={{ fontSize: 13 }}>{row.extra}</span>
+                    )}
                   </td>
                   <td>
                     {row.code && (

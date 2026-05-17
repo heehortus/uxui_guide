@@ -103,7 +103,8 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
 function BlockInner({ block }) {
   switch (block.type) {
     case 'process': return <ProcessBlock content={block.content} />
-    case 'links':   return <LinksBlock block={block} />
+    case 'links':
+    case 'links-file': return <LinksBlock block={block} />
     case 'kakao':   return <KakaoBlock content={block.content} />
     case 'code':    return <CodeBlock content={block.content} />
     case 'file':    return <FileBlock content={block.content} />
