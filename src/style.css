@@ -1092,7 +1092,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .file-block-content { display: flex; flex-direction: column; gap: 12px; }                                                  
 .file-preview-img {                                                                                           
   width: auto;
-  height: 300px;
+  max-width: 480px;
   margin-top: 24px;                                                                                            
   border-radius: var(--radius-sm);                                                                                  
   display: block;                                                                                                        
