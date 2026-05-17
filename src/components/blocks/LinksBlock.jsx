@@ -24,9 +24,10 @@ function serializeRows(rows) {
 
 function parseFile(file) {
   if (!file) return null
-  const parts = file.split('|')
-  const name = parts.length > 1 ? parts[0] : file
-  const url  = parts.length > 1 ? parts[1] : file
+  // 저장 형식: "filename::url" (구분자 ::)
+  const idx = file.indexOf('::')
+  const name = idx !== -1 ? file.slice(0, idx) : file
+  const url  = idx !== -1 ? file.slice(idx + 2) : file
   const ext  = getExt(name)
   return { name, url, ext }
 }

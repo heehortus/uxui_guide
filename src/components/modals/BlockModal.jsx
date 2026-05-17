@@ -130,7 +130,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
             const { error } = await supabase.storage.from('uploads').upload(path, it._file)
             if (error) throw error
             const { data: urlData } = supabase.storage.from('uploads').getPublicUrl(path)
-            return { ...it, file: `${it._file.name}|${urlData.publicUrl}`, _file: null }
+            return { ...it, file: `${it._file.name}::${urlData.publicUrl}`, _file: null }
           }))
         } catch (err) {
           toast('파일 업로드 실패: ' + err.message)
@@ -360,7 +360,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
                   {(item._file || item.file) ? (
                     <>
                       <span className="link-item-file-name">
-                        📎 {item._file ? item._file.name : item.file.split('|')[0]}
+                        📎 {item._file ? item._file.name : item.file.split('::')[0]}
                       </span>
                       <label className="link-item-file-change-btn">
                         변경
