@@ -1021,6 +1021,50 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .code-block-wrapper {
   position: relative;
 }
+
+/* ─── Live Code 탭 ───────────────────────────── */
+.code-block-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 0;
+  background: #1e1e2e;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.code-tab-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  color: #89b4fa;
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+}
+.code-tab-btn:hover { background: rgba(255,255,255,0.08); }
+.code-tab-btn.active {
+  background: #181825;
+  color: #cdd6f4;
+  border-color: #313244;
+}
+.live-preview-box {
+  padding: 20px;
+  background: #fff;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  border: 1px solid var(--outline-variant);
+  min-height: 60px;
+}
+.live-error {
+  padding: 10px 14px;
+  background: #ffcdd2;
+  color: #b71c1c;
+  font-size: 12px;
+  font-family: monospace;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  white-space: pre-wrap;
+}
+
 .code-block-pre {
   margin: 0;
   padding: 16px;
@@ -1030,7 +1074,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   line-height: 1.7;
   white-space: pre;
   color: #cdd6f4;
-  border-radius: var(--radius-sm);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 .code-block-pre code { background: none; padding: 0; font-family: inherit; }
 .code-copy-btn {
