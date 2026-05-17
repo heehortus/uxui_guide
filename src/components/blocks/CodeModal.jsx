@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
+import LivePreviewPanel from './LivePreviewPanel'
 
 export default function CodeModal({ code, title, onClose, onSave, onDelete }) {
   const [copied, setCopied] = useState(false)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(code)
+  const [tab, setTab] = useState('code') // 'code' | 'preview'
 
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose() }
@@ -37,6 +39,7 @@ export default function CodeModal({ code, title, onClose, onSave, onDelete }) {
   function handleEditToggle() {
     setDraft(code)
     setEditing(true)
+    setTab('code')
   }
 
   function handleCancel() {
@@ -70,6 +73,15 @@ export default function CodeModal({ code, title, onClose, onSave, onDelete }) {
             <button className="lightbox-close" style={{ position: 'static', width: 32, height: 32, fontSize: 16 }} onClick={onClose}>✕</button>
           </div>
         </div>
+
+        {/* 코드 / 미리보기 탭 (수정 모드가 아닐 때만) */}
+        {!editing && (
+          <div className="code-block-toolbar" style={{ borderRadius: 0 }}>
+            <button className={`code-tab-btn${tab === 'code' ? ' active' : ''}`} onClick={() => setTab('code')}>코드</button>
+            <button className={`code-tab-btn${tab === 'preview' ? ' active' : ''}`} onClick={() => setTab('preview')}>미리보기</button>
+          </div>
+        )}
+
         {editing ? (
           <textarea
             className="code-modal-textarea"
@@ -78,6 +90,8 @@ export default function CodeModal({ code, title, onClose, onSave, onDelete }) {
             spellCheck={false}
             autoFocus
           />
+        ) : tab === 'preview' ? (
+          <LivePreviewPanel code={code} style={{ flex: 1, overflowY: 'auto' }} />
         ) : (
           <pre className="code-modal-pre"><code>{code}</code></pre>
         )}

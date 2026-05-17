@@ -539,6 +539,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .block-actions {
   position: absolute; top: 16px; right: 16px;
   display: flex; gap: 8px; align-items: center; opacity: 0; transition: opacity 150ms;
+  z-index: 10;
 }
 .content-block:hover .block-actions { opacity: 1; }
 
@@ -546,6 +547,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .block-mobile-menu-btn {
   display: none;
   position: absolute; top: 10px; right: 10px;
+  z-index: 10;
   width: 32px; height: 32px;
   align-items: center; justify-content: center;
   border-radius: var(--radius-sm);
@@ -941,8 +943,17 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .tiplist-text a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 
 /* code inline item */
-.tiplist-item.type-code { background: rgba(137,180,250,0.05); }
-.tiplist-item.type-code:hover { background: rgba(137,180,250,0.10); }
+.tiplist-item.type-code {
+  background: #1e1e2e;
+  padding: 0;
+  border-left: none;
+  display: block;
+}
+
+.tiplist-item.type-code { display: block; width: 100%; border-left: none; }
+.tiplist-item.type-code .code-block-wrapper { width: 100%; }
+.tiplist-item.type-code .live-preview-box { border-left: none; border-right: none; border-radius: 0; }
+.tiplist-item.type-code .live-preview-iframe { width: 100%; }
 .tiplist-code {
   display: block;
   font-family: 'Fira Mono', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
@@ -1018,8 +1029,12 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   color: #cdd6f4;
 }
 .block-code .block-label { color: #89b4fa; }
+.block-code .block-actions .btn-ghost { color: #cdd6f4; }
+.block-code .block-actions .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+
 .code-block-wrapper {
   position: relative;
+  width: 100%;
 }
 
 /* ─── Live Code 탭 ───────────────────────────── */
@@ -1029,6 +1044,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   padding: 8px 12px 0;
   background: #1e1e2e;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  border-bottom: 1px solid #313244;
 }
 .code-tab-btn {
   padding: 4px 12px;
@@ -1041,19 +1057,30 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   border-bottom: none;
   cursor: pointer;
   transition: background 150ms, color 150ms;
+  position: relative;
+  margin-bottom: -1px;
 }
 .code-tab-btn:hover { background: rgba(255,255,255,0.08); }
 .code-tab-btn.active {
-  background: #181825;
+  background: #1e1e2e;
   color: #cdd6f4;
   border-color: #313244;
+  border-bottom-color: #1e1e2e;
+  z-index: 1;
 }
 .live-preview-box {
+  margin-top: 16px;
   padding: 20px;
   background: #fff;
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
   border: 1px solid var(--outline-variant);
   min-height: 60px;
+}
+.live-preview-iframe {
+  width: 100%;
+  min-height: 120px;
+  border: none;
+  display: block;
 }
 .live-error {
   padding: 10px 14px;
@@ -1065,6 +1092,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   white-space: pre-wrap;
 }
 
+.code-block-collapsible { position: relative; }
 .code-block-pre {
   margin: 0;
   padding: 16px;
@@ -1076,6 +1104,25 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   color: #cdd6f4;
   border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
+.code-block-pre--collapsed {
+  -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
+  border-radius: 0;
+}
+.code-expand-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #89b4fa;
+  border-top: 1px solid #313244;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  text-align: center;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.code-expand-btn:hover { background: #1e1e2e; }
 .code-block-pre code { background: none; padding: 0; font-family: inherit; }
 .code-copy-btn {
   position: absolute; top: 8px; right: 8px;

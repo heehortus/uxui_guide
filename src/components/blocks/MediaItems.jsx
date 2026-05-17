@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { IMAGE_EXT, VIDEO_EXT, DL_ICON, getExt, formatFileSize, isMediaFile } from '../../lib/fileUtils'
 import { linkifyText } from '../../lib/utils'
 import Lightbox from './Lightbox'
+import CodeBlock from './CodeBlock'
 
 export function MediaItems({ items }) {
   const [lightbox, setLightbox] = useState(null)
@@ -34,7 +35,7 @@ export function InlineItems({ items }) {
         {nonMedia.map((item, i) => (
           <div key={i} className={`tiplist-item type-${item.type}`}>
             {item.type === 'code'
-              ? <code className="inline-code tiplist-code">{item.text}</code>
+              ? <CodeBlock content={item.text} />
               : item.type === 'file'
               ? (() => {
                   const [name, url, sizeStr] = (item.text || '').split('|').map(s => s?.trim())
