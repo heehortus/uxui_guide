@@ -358,12 +358,14 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
                     onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, name: e.target.value } : it))}
                     placeholder="가이드명"
                   />
-                  <input
-                    className="form-input link-item-type"
-                    value={item.type}
-                    onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, type: e.target.value } : it))}
-                    placeholder="유형"
-                  />
+                  {type === 'links' && (
+                    <input
+                      className="form-input link-item-type"
+                      value={item.type}
+                      onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, type: e.target.value } : it))}
+                      placeholder="유형"
+                    />
+                  )}
                   <input
                     className="form-input link-item-url"
                     value={item.url}
@@ -410,13 +412,16 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
                   </div>
                 )}
 
-                <textarea
-                  className="form-textarea code-textarea link-item-code"
-                  value={item.code}
-                  onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, code: e.target.value } : it))}
-                  placeholder="코드 (선택)"
-                  spellCheck={false}
-                />
+                {/* 코드 (links-file 타입만) */}
+                {type === 'links-file' && (
+                  <textarea
+                    className="form-textarea code-textarea link-item-code"
+                    value={item.code}
+                    onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, code: e.target.value } : it))}
+                    placeholder="코드 (선택)"
+                    spellCheck={false}
+                  />
+                )}
               </div>
             ))}
           </div>
