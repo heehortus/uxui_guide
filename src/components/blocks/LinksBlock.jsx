@@ -67,7 +67,13 @@ export default function LinksBlock({ block }) {
       <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
         <table className="link-table">
           <thead>
-            <tr><th>가이드명</th><th>유형</th><th>링크</th><th>{isFileType ? '파일' : '비고'}</th><th>코드</th></tr>
+            <tr>
+              <th>가이드명</th>
+              {!isFileType && <th>유형</th>}
+              <th>링크</th>
+              <th>{isFileType ? '파일' : '비고'}</th>
+              {isFileType && <th>코드</th>}
+            </tr>
           </thead>
           <tbody>
             {rows.map((row, i) => {
@@ -75,7 +81,7 @@ export default function LinksBlock({ block }) {
               return (
                 <tr key={i}>
                   <td>{row.name}</td>
-                  <td><span className={`badge-type ${cls}`}>{row.type}</span></td>
+                  {!isFileType && <td><span className={`badge-type ${cls}`}>{row.type}</span></td>}
                   <td>
                     {row.url && (
                       <a href={row.url} target="_blank" rel="noopener">
@@ -95,16 +101,18 @@ export default function LinksBlock({ block }) {
                       <span style={{ fontSize: 13 }}>{row.extra}</span>
                     )}
                   </td>
-                  <td>
-                    {row.code && (
-                      <button
-                        className="link-code-btn"
-                        onClick={() => setCodeModal({ idx: i, code: row.code, title: row.name })}
-                      >
-                        코드 ›
-                      </button>
-                    )}
-                  </td>
+                  {isFileType && (
+                    <td>
+                      {row.code && (
+                        <button
+                          className="link-code-btn"
+                          onClick={() => setCodeModal({ idx: i, code: row.code, title: row.name })}
+                        >
+                          코드 ›
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               )
             })}
