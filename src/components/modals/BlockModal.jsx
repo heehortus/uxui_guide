@@ -184,7 +184,6 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
 
     const validItems = resolvedItems
       .filter(it => it.text?.trim())
-      .sort((a, b) => (a.type === 'file' ? -1 : b.type === 'file' ? 1 : 0))
     if (!actualContent?.trim() && validItems.length === 0) {
       toast('내용이나 항목을 입력해주세요.')
       return
