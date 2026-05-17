@@ -51,7 +51,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         setProcessItems(rows.length > 0
           ? rows.map(r => {
               const [title = '', desc = ''] = r.split('|').map(s => s?.trim() ?? '')
-              return { title, desc }
+              return { title, desc: desc.replace(/\\n/g, '\n') }
             })
           : [{ title: '', desc: '' }]
         )
@@ -83,12 +83,12 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       } else {
         setContent(editing?.content ?? '')
       }
-      setItems((editing?.block_items ?? []).map(it => ({ type: it.type, text: it.text })))
+      setItems((editing?.block_items ?? []).map(it => ({ _id: crypto.randomUUID(), type: it.type, text: it.text })))
     }
   }, [open, editing])
 
   function addItem(itemType) {
-    const newItem = { type: itemType, text: '' }
+    const newItem = { _id: crypto.randomUUID(), type: itemType, text: '' }
     setItems(prev => itemType === 'file' ? [newItem, ...prev] : [...prev, newItem])
   }
   function removeItem(idx) {
@@ -115,7 +115,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
     if (type === 'process') {
       actualContent = processItems
         .filter(it => it.title.trim())
-        .map(it => `${it.title}|${it.desc}`)
+        .map(it => `${it.title}|${it.desc.replace(/\n/g, '\\n')}`)
         .join('\n')
     } else if (type === 'links') {
       actualContent = linkItems
@@ -470,7 +470,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         </div>
         <div>
           {items.map((item, i) => (
-            <div key={i} className={`modal-item-row type-${item.type}`}>
+            <div key={item._id} className={`modal-item-row type-${item.type}`}>
               <div className="modal-item-order-btns">
                 <button className="process-order-btn" disabled={i === 0} onClick={() => moveItem(i, -1)}>▲</button>
                 <button className="process-order-btn" disabled={i === items.length - 1} onClick={() => moveItem(i, 1)}>▼</button>
