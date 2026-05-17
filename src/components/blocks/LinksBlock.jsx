@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useUpdateBlock } from '../../hooks/useBlocks'
+import { IMAGE_EXT, VIDEO_EXT, getExt } from '../../lib/fileUtils'
 import CodeModal from './CodeModal'
 
 const BADGE = {
@@ -11,17 +12,42 @@ const BADGE = {
 
 function parseRows(content) {
   return (content || '').split('\n').filter(l => l.trim()).map(r => {
-    const [name = '', type = '', url = '', note = '', code = ''] = r.split('|').map(s => s?.trim() ?? '')
-    return { name, type, url, note, code: code.replace(/\\n/g, '\n')}
+    const [name = '', type = '', url = '', file = '', code = ''] = r.split('|').map(s => s?.trim() ?? '')
+    return { name, type, url, file, code: code.replace(/\\n/g, '\n') }
   })
 }
 
 function serializeRows(rows) {
-  return rows.map(r => `${r.name}|${r.type}|${r.url}|${r.note}|${r.code.replace(/\n/g, '\\n')}`).join('\n')
+  return rows.map(r => `${r.name}|${r.type}|${r.url}|${r.file}|${r.code.replace(/\n/g, '\\n')}`).join('\n')
+}
+
+function LinkFile({ file }) {
+  if (!file) return null
+  // file format: "filename|url" or just a plain URL (legacy)
+  const parts = file.split('|')
+  const name = parts.length > 1 ? parts[0] : file
+  const url  = parts.length > 1 ? parts[1] : file
+  const ext  = getExt(name)
+
+  if (IMAGE_EXT.includes(ext)) {
+    return (
+      <a href={url} target="_blank" rel="noopener">
+        <img src={url} alt={name} className="link-file-thumb" />
+      </a>
+    )
+  }
+  if (VIDEO_EXT.includes(ext)) {
+    return <video src={url} className="link-file-thumb" muted playsInline controls />
+  }
+  return (
+    <a href={url} target="_blank" rel="noopener" download={name} className="link-file-dl">
+      📎 {name}
+    </a>
+  )
 }
 
 export default function LinksBlock({ block }) {
-  const [codeModal, setCodeModal] = useState(null) // { idx, code, title }
+  const [codeModal, setCodeModal] = useState(null)
   const update = useUpdateBlock()
 
   const rows = parseRows(block.content)
@@ -52,7 +78,7 @@ export default function LinksBlock({ block }) {
       <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
         <table className="link-table">
           <thead>
-            <tr><th>가이드명</th><th>유형</th><th>링크</th><th>비고</th><th>코드</th></tr>
+            <tr><th>가이드명</th><th>유형</th><th>링크</th><th>파일</th><th>코드</th></tr>
           </thead>
           <tbody>
             {rows.map((row, i) => {
@@ -68,7 +94,9 @@ export default function LinksBlock({ block }) {
                       </a>
                     )}
                   </td>
-                  <td>{row.note}</td>
+                  <td className="link-table-file-cell">
+                    <LinkFile file={row.file} />
+                  </td>
                   <td>
                     {row.code && (
                       <button

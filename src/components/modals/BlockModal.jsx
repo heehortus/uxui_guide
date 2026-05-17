@@ -23,7 +23,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
   const [type, setType] = useState('default')
   const [label, setLabel] = useState('')
   const [content, setContent] = useState('')
-  const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', note: '', code: '' }])
+  const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', file: '', _file: null, code: '' }])
   const [processItems, setProcessItems] = useState([{ title: '', desc: '' }])
   const [kakaoItems, setKakaoItems] = useState([{ title: '', body: '' }])
   const [codeContent, setCodeContent] = useState('')
@@ -59,10 +59,10 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         const rows = (editing?.content ?? '').split('\n').filter(Boolean)
         setLinkItems(rows.length > 0
           ? rows.map(r => {
-              const [name = '', type = '', url = '', note = '', code = ''] = r.split('|').map(s => s?.trim() ?? '')
-              return { name, type, url, note, code: code.replace(/\\n/g, '\n') }
+              const [name = '', type = '', url = '', file = '', code = ''] = r.split('|').map(s => s?.trim() ?? '')
+              return { name, type, url, file, _file: null, code: code.replace(/\\n/g, '\n') }
             })
-          : [{ name: '', type: '', url: '', note: '', code: '' }]
+          : [{ name: '', type: '', url: '', file: '', _file: null, code: '' }]
         )
       } else if (editing?.type === 'kakao') {
         const msgs = (editing?.content ?? '').split(/\n---\n/).map(s => s.trim()).filter(Boolean)
@@ -118,9 +118,30 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         .map(it => `${it.title}|${it.desc.replace(/\n/g, '\\n')}`)
         .join('\n')
     } else if (type === 'links') {
-      actualContent = linkItems
+      const hasPendingLinkFiles = linkItems.some(it => it._file)
+      let resolvedLinkItems = linkItems
+      if (hasPendingLinkFiles) {
+        setUploading(true)
+        try {
+          resolvedLinkItems = await Promise.all(linkItems.map(async it => {
+            if (!it._file) return it
+            const ext = it._file.name.split('.').pop()
+            const path = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+            const { error } = await supabase.storage.from('uploads').upload(path, it._file)
+            if (error) throw error
+            const { data: urlData } = supabase.storage.from('uploads').getPublicUrl(path)
+            return { ...it, file: `${it._file.name}|${urlData.publicUrl}`, _file: null }
+          }))
+        } catch (err) {
+          toast('파일 업로드 실패: ' + err.message)
+          setUploading(false)
+          return
+        }
+        setUploading(false)
+      }
+      actualContent = resolvedLinkItems
         .filter(it => it.name.trim() || it.url.trim())
-        .map(it => `${it.name}|${it.type}|${it.url}|${it.note}|${it.code.replace(/\n/g, '\\n')}`)
+        .map(it => `${it.name}|${it.type}|${it.url}|${it.file}|${it.code.replace(/\n/g, '\\n')}`)
         .join('\n')
     }
     else if (type === 'kakao') {
@@ -335,12 +356,29 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
                   />
                   <button className="modal-item-remove" onClick={() => setLinkItems(prev => prev.filter((_, j) => j !== i))}>×</button>
                 </div>
-                <input
-                  className="form-input"
-                  value={item.note}
-                  onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, note: e.target.value } : it))}
-                  placeholder="비고 (선택)"
-                />
+                <div className="link-item-file-row">
+                  {(item._file || item.file) ? (
+                    <>
+                      <span className="link-item-file-name">
+                        📎 {item._file ? item._file.name : item.file.split('|')[0]}
+                      </span>
+                      <label className="link-item-file-change-btn">
+                        변경
+                        <input type="file" style={{ display: 'none' }}
+                          onChange={e => { if (e.target.files[0]) setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, _file: e.target.files[0], file: '' } : it)) }}
+                        />
+                      </label>
+                      <button className="link-item-file-remove-btn" onClick={() => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, _file: null, file: '' } : it))}>×</button>
+                    </>
+                  ) : (
+                    <label className="link-item-file-upload-btn">
+                      📎 파일 첨부 (선택)
+                      <input type="file" style={{ display: 'none' }}
+                        onChange={e => { if (e.target.files[0]) setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, _file: e.target.files[0] } : it)) }}
+                      />
+                    </label>
+                  )}
+                </div>
                 <textarea
                   className="form-textarea code-textarea link-item-code"
                   value={item.code}
@@ -353,7 +391,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
           </div>
           <button
                   className="link-item-add-btn"
-                  onClick={() => setLinkItems(prev => [...prev, { name: '', type: '', url: '', code: '', note: '' }])}
+                  onClick={() => setLinkItems(prev => [...prev, { name: '', type: '', url: '', file: '', _file: null, code: '' }])}
                 >
                   + 항목 추가
           </button>

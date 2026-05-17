@@ -653,6 +653,58 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   white-space: nowrap;
 }
 .link-code-btn:hover { background: rgba(122,175,255,0.2); }
+.link-table-file-cell { padding: 6px 12px; }
+.link-file-thumb {
+  max-width: 120px;
+  max-height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+.link-file-dl {
+  font-size: 12px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* 링크 모달 파일 업로드 UI */
+.link-item-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px dashed var(--outline-variant);
+  border-radius: var(--radius);
+  min-height: 36px;
+}
+.link-item-file-upload-btn {
+  font-size: 13px;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  flex: 1;
+}
+.link-item-file-upload-btn:hover { color: var(--on-surface); }
+.link-item-file-name {
+  font-size: 13px;
+  color: var(--on-surface);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.link-item-file-change-btn {
+  font-size: 12px;
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.link-item-file-remove-btn {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  line-height: 1;
+  flex-shrink: 0;
+}
+.link-item-file-remove-btn:hover { color: var(--destructive); }
 
 /* ─── Code Modal ─────────────────────────────── */
 .code-modal {
