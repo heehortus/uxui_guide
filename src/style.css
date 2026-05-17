@@ -535,6 +535,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--surface);
+  width: 100%;
 }
 .rich-editor-toolbar {
   display: flex; align-items: center; gap: 2px;
