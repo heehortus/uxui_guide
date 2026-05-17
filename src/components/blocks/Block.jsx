@@ -106,6 +106,16 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
             <button className="block-action-sheet-item block-action-sheet-item--danger" onClick={handleDelete}>
               삭제
             </button>
+            {onMoveUp && (
+              <button className="block-action-sheet-item" onClick={() => { setMenuOpen(false); onMoveUp() }}>
+                위로
+              </button>
+            )}
+            {onMoveDown && (
+              <button className="block-action-sheet-item" onClick={() => { setMenuOpen(false); onMoveDown() }}>
+                아래로
+              </button>
+            )}
             <button className="block-action-sheet-item block-action-sheet-item--cancel" onClick={() => setMenuOpen(false)}>
               취소
             </button>

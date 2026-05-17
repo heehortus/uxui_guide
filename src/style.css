@@ -1372,17 +1372,11 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   .sidebar.open { left: 0; }
   .content { padding: var(--space-md); }
 
-  /* 블록 순서 버튼: 모바일에서는 블록 안쪽 상단 좌측, 항상 표시 */
-  .block-order-handle {
-    left: 8px;
-    top: 8px;
-    opacity: 1;
-  }
-  .content-block {
-    padding-left: 44px;
-  }
+  /* 블록 순서 버튼: 모바일에서는 숨김 (액션 시트로 대체) */
+  .block-order-handle { display: none; }
 
   /* 데스크탑 액션 버튼 숨김, 6-dot 버튼 표시 */
+  .block-label { padding-right: 36px;}
   .block-actions { display: none !important; }
   .block-mobile-menu-btn { display: flex; }
 
@@ -1394,4 +1388,8 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   /* 탑바: 폰트 축소 + 패딩 축소 */
   .topbar { padding: 0 var(--space-md); height: 56px; }
   .topbar-breadcrumb { font-size: 13px; }
+
+  .file-preview-img { max-width: 100%; }
+  .file-preview-clickable { margin-top: 0;}
+  .inline-media-items { column-gap: 8px; margin-bottom: 0;}
 }
