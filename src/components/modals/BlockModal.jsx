@@ -346,6 +346,12 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
             {linkItems.map((item, i) => (
               <div key={i} className="link-item-block">
                 <div className="link-item-row">
+                  <div className="modal-item-order-btns">
+                    <button className="process-order-btn" disabled={i === 0}
+                      onClick={() => setLinkItems(prev => { const n = [...prev]; [n[i-1], n[i]] = [n[i], n[i-1]]; return n })}>▲</button>
+                    <button className="process-order-btn" disabled={i === linkItems.length - 1}
+                      onClick={() => setLinkItems(prev => { const n = [...prev]; [n[i], n[i+1]] = [n[i+1], n[i]]; return n })}>▼</button>
+                  </div>
                   <input
                     className="form-input link-item-name"
                     value={item.name}
