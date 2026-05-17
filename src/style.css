@@ -613,9 +613,6 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .block-content a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 
 /* ─── Block Variants ─────────────────────────── */
-.block-tip { background: rgba(231,240,86,0.08); border-color: rgba(231,240,86,0.4); }
-.block-tip .block-label { color: #5a6200; }
-
 .block-warning { background: var(--warning); border-color: var(--warning-container); }
 .block-warning .block-label { color: var(--on-warning); }
 
@@ -1041,11 +1038,6 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .block-inline-items .tiplist-item:last-child { border-bottom: none; }
 
 /* ─── Kakao Block ────────────────────────────── */
-.block-kakao {
-  background: var(--surface-container-low);
-  border: 1px solid var(--outline-variant);
-}
-.block-kakao .block-label { color: #5c4a00; }
 .kakao-messages { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
 .kakao-bubble {
   background: #fff;
@@ -1081,14 +1073,6 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 }
 
 /* ─── Code Block ─────────────────────────────── */
-.block-code {
-  background: #1e1e2e;
-  border: 1px solid #313244;
-  color: #cdd6f4;
-}
-.block-code .block-label { color: #89b4fa; }
-.block-code .block-actions .btn-ghost { color: #cdd6f4; }
-.block-code .block-actions .btn-ghost:hover { background: rgba(255,255,255,0.1); }
 
 .code-block-wrapper {
   position: relative;
@@ -1209,10 +1193,6 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .code-textarea::placeholder { color: #6c7086; }
 
 /* ─── File Block ─────────────────────────────── */
-.block-file {
-  background: var(--surface-container-low);
-  border: 1px solid var(--outline-variant);
-}
 .inline-media-items {
   display: flex; flex-direction: row; flex-wrap: wrap;
   gap: 12px; margin-bottom: 12px;
