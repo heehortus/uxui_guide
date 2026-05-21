@@ -105,6 +105,7 @@ export default function LinksBlock({ block }) {
 
   return (
     <>
+      
       {types.length > 1 && (
         <div className="link-filter-wrap">
           <div className="link-filter-dropdown">
@@ -135,16 +136,15 @@ export default function LinksBlock({ block }) {
           </div>
         </div>
       )}
-
-      <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)', marginTop: '24px' }}>
+      <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)'}}>
         <table className="link-table">
           <thead>
             <tr>
               <th>가이드명</th>
-              {hasType && <th>유형</th>}
+              {hasType && <th className="col-type">유형</th>}
               {hasUrl  && <th>링크</th>}
-              {hasFile && <th>파일</th>}
-              {hasCode && <th>코드</th>}
+              {hasFile && <th className="col-code">파일</th>}
+              {hasCode && <th className="col-code">코드</th>}
               {hasDesc && <th className="col-desc">내용</th>}
               {hasNote && <th>비고</th>}
             </tr>
@@ -156,18 +156,18 @@ export default function LinksBlock({ block }) {
               return (
                 <tr key={row.originalIdx}>
                   <td>{row.name}</td>
-                  {hasType && <td>{row.type && <span className={`badge-type ${cls}`}>{row.type}</span>}</td>}
+                  {hasType && <td className="col-type">{row.type && <span className={`badge-type ${cls}`}>{row.type}</span>}</td>}
                   {hasUrl && (
                     <td>
                       {row.url && (
                         <a href={row.url} target="_blank" rel="noopener">
-                          {row.url.replace('https://', '').slice(0, 40)}{row.url.length > 47 ? '…' : ''}
+                          {row.url}
                         </a>
                       )}
                     </td>
                   )}
                   {hasFile && (
-                    <td className="link-table-file-cell">
+                    <td className="link-table-file-cell col-code">
                       {fileData && (() => {
                         const isMedia = IMAGE_EXT.includes(fileData.ext) || VIDEO_EXT.includes(fileData.ext)
                         return isMedia
@@ -177,7 +177,7 @@ export default function LinksBlock({ block }) {
                     </td>
                   )}
                   {hasCode && (
-                    <td>
+                    <td className="col-code">
                       {row.code && (
                         <button
                           className="link-code-btn"
