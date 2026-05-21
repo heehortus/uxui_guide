@@ -24,12 +24,15 @@ function serializeRows(rows) {
 
 function parseFile(file) {
   if (!file) return null
-  // 저장 형식: "filename::url" (구분자 ::)
   const idx = file.indexOf('::')
   const name = idx !== -1 ? file.slice(0, idx) : file
   const url  = idx !== -1 ? file.slice(idx + 2) : file
   const ext  = getExt(name)
   return { name, url, ext }
+}
+
+function isFileExtra(extra) {
+  return Boolean(extra && extra.includes('::'))
 }
 
 function FilterIcon() {
@@ -48,16 +51,21 @@ export default function LinksBlock({ block }) {
   const update = useUpdateBlock()
 
   const rows = parseRows(block.content)
+  const allRows = rows.map((r, originalIdx) => ({ ...r, originalIdx }))
 
-  const isFileType = block.type === 'links-file'
+  // 전체 행 기준으로 컬럼 표시 여부 결정
+  const hasType = allRows.some(r => r.type)
+  const hasUrl  = allRows.some(r => r.url)
+  const hasFile = allRows.some(r => isFileExtra(r.extra))
+  const hasCode = allRows.some(r => r.code)
+  const hasNote = allRows.some(r => r.extra && !isFileExtra(r.extra))
 
-  const types = isFileType
-    ? []
-    : ['전체', ...Array.from(new Set(rows.map(r => r.type).filter(Boolean)))]
+  const types = hasType
+    ? ['전체', ...Array.from(new Set(allRows.map(r => r.type).filter(Boolean)))]
+    : []
 
-  const sortedRows = rows
-    .map((r, originalIdx) => ({ ...r, originalIdx }))
-    .filter(r => isFileType || filterType === '전체' || r.type === filterType)
+  const sortedRows = allRows
+    .filter(r => filterType === '전체' || r.type === filterType)
     .sort((a, b) => {
       const typeCompare = (a.type || '').localeCompare(b.type || '', 'ko')
       if (typeCompare !== 0) return typeCompare
@@ -87,11 +95,9 @@ export default function LinksBlock({ block }) {
 
   return (
     <>
-      {!isFileType && types.length > 1 && (
+      {types.length > 1 && (
         <div className="link-filter-wrap">
           <div className="link-filter-dropdown">
-            
-
             <button
               className={`link-filter-trigger${filterType !== '전체' ? ' link-filter-trigger--active' : ''}`}
               onClick={() => setFilterOpen(o => !o)}
@@ -119,44 +125,47 @@ export default function LinksBlock({ block }) {
           </div>
         </div>
       )}
+
       <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
         <table className="link-table">
           <thead>
             <tr>
               <th>가이드명</th>
-              {!isFileType && <th>유형</th>}
-              <th>링크</th>
-              <th>{isFileType ? '파일' : '비고'}</th>
-              {isFileType && <th>코드</th>}
+              {hasType && <th>유형</th>}
+              {hasUrl  && <th>링크</th>}
+              {hasFile && <th>파일</th>}
+              {hasCode && <th>코드</th>}
+              {hasNote && <th>비고</th>}
             </tr>
           </thead>
           <tbody>
             {sortedRows.map((row) => {
               const cls = BADGE[row.type] || 'book'
+              const fileData = isFileExtra(row.extra) ? parseFile(row.extra) : null
               return (
                 <tr key={row.originalIdx}>
                   <td>{row.name}</td>
-                  {!isFileType && <td><span className={`badge-type ${cls}`}>{row.type}</span></td>}
-                  <td>
-                    {row.url && (
-                      <a href={row.url} target="_blank" rel="noopener">
-                        {row.url.replace('https://', '').slice(0, 40)}{row.url.length > 47 ? '…' : ''}
-                      </a>
-                    )}
-                  </td>
-                  <td className="link-table-file-cell">
-                    {isFileType ? (() => {
-                      const f = parseFile(row.extra)
-                      if (!f) return null
-                      const isMedia = IMAGE_EXT.includes(f.ext) || VIDEO_EXT.includes(f.ext)
-                      return isMedia
-                        ? <button className="link-code-btn link-file-btn" onClick={() => setLightbox(f)}>파일 ›</button>
-                        : <a href={f.url} target="_blank" rel="noopener" download={f.name} className="link-code-btn link-file-btn">파일 ›</a>
-                    })() : (
-                      <span style={{ fontSize: 13 }}>{row.extra}</span>
-                    )}
-                  </td>
-                  {isFileType && (
+                  {hasType && <td>{row.type && <span className={`badge-type ${cls}`}>{row.type}</span>}</td>}
+                  {hasUrl && (
+                    <td>
+                      {row.url && (
+                        <a href={row.url} target="_blank" rel="noopener">
+                          {row.url.replace('https://', '').slice(0, 40)}{row.url.length > 47 ? '…' : ''}
+                        </a>
+                      )}
+                    </td>
+                  )}
+                  {hasFile && (
+                    <td className="link-table-file-cell">
+                      {fileData && (() => {
+                        const isMedia = IMAGE_EXT.includes(fileData.ext) || VIDEO_EXT.includes(fileData.ext)
+                        return isMedia
+                          ? <button className="link-code-btn link-file-btn" onClick={() => setLightbox(fileData)}>파일 ›</button>
+                          : <a href={fileData.url} target="_blank" rel="noopener" download={fileData.name} className="link-code-btn link-file-btn">파일 ›</a>
+                      })()}
+                    </td>
+                  )}
+                  {hasCode && (
                     <td>
                       {row.code && (
                         <button
@@ -167,6 +176,9 @@ export default function LinksBlock({ block }) {
                         </button>
                       )}
                     </td>
+                  )}
+                  {hasNote && (
+                    <td><span style={{ fontSize: 13 }}>{!isFileExtra(row.extra) ? row.extra : ''}</span></td>
                   )}
                 </tr>
               )

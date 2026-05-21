@@ -11,14 +11,12 @@ const TYPES = [
   { value: 'warning',    label: '주의' },
   { value: 'info',       label: '안내' },
   { value: 'process',    label: '프로세스' },
-  { value: 'links',      label: '링크+비고' },
-  { value: 'links-file', label: '링크+파일' },
+  { value: 'links',      label: '표' },
   { value: 'kakao',      label: '카톡 템플릿' },
   { value: 'code',       label: '코드' },
   { value: 'file',       label: '파일 첨부' },
 ]
-const SPECIAL = ['links', 'links-file', 'kakao', 'code', 'file', 'process']
-const LINKS_TYPES = ['links', 'links-file']
+const SPECIAL = ['links', 'kakao', 'code', 'file', 'process']
 const ITEM_ICONS = { tip: '💡', warning: '⚠️', info: 'ℹ️', default: '•', code: '<>', file: '📎' }
 
 export default function BlockModal({ open, onClose, stepId, editing }) {
@@ -41,7 +39,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
 
   useEffect(() => {
     if (open) {
-      setType(editing?.type ?? 'default')
+      setType(editing?.type === 'links-file' ? 'links' : (editing?.type ?? 'default'))
       setLabel(editing?.label ?? '')
       setContent('')
       setKakaoItems([{ title: '', body: '' }])
@@ -59,13 +57,11 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         )
       } else if (editing?.type === 'links' || editing?.type === 'links-file') {
         const rows = (editing?.content ?? '').split('\n').filter(Boolean)
-        const isFile = editing?.type === 'links-file'
         setLinkItems(rows.length > 0
           ? rows.map(r => {
               const [name = '', type = '', url = '', extra = '', code = ''] = r.split('|').map(s => s?.trim() ?? '')
-              return isFile
-                ? { name, type, url, note: '', file: extra, _file: null, code: code.replace(/\\n/g, '\n') }
-                : { name, type, url, note: extra, file: '', _file: null, code: code.replace(/\\n/g, '\n') }
+              const isFileExtra = extra.includes('::')
+              return { name, type, url, note: isFileExtra ? '' : extra, file: isFileExtra ? extra : '', _file: null, code: code.replace(/\\n/g, '\n') }
             })
           : [{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '' }]
         )
@@ -123,14 +119,8 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         .map(it => `${it.title}|${it.desc.replace(/\n/g, '\\n')}`)
         .join('\n')
     } else if (type === 'links') {
-      actualContent = linkItems
-        .filter(it => it.name.trim() || it.url.trim())
-        .map(it => `${it.name}|${it.type}|${it.url}|${it.note ?? ''}|${it.code.replace(/\n/g, '\\n')}`)
-        .join('\n')
-    } else if (type === 'links-file') {
-      const hasPendingLinkFiles = linkItems.some(it => it._file)
       let resolvedLinkItems = linkItems
-      if (hasPendingLinkFiles) {
+      if (linkItems.some(it => it._file)) {
         setUploading(true)
         try {
           resolvedLinkItems = await Promise.all(linkItems.map(async it => {
@@ -151,7 +141,10 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       }
       actualContent = resolvedLinkItems
         .filter(it => it.name.trim() || it.url.trim())
-        .map(it => `${it.name}|${it.type}|${it.url}|${it.file}|${it.code.replace(/\n/g, '\\n')}`)
+        .map(it => {
+          const extra = it.file ? it.file : (it.note ?? '')
+          return `${it.name}|${it.type}|${it.url}|${extra}|${it.code.replace(/\n/g, '\\n')}`
+        })
         .join('\n')
     }
     else if (type === 'kakao') {
@@ -338,8 +331,8 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         </div>
       )}
 
-      {/* 링크 목록 (비고 / 파일 공용) */}
-      {LINKS_TYPES.includes(type) && (
+      {/* 링크 목록 */}
+      {type === 'links' && (
         <div className="form-group">
           <label className="form-label">링크 목록</label>
           <div className="link-items-list">
@@ -358,14 +351,12 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
                     onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, name: e.target.value } : it))}
                     placeholder="가이드명"
                   />
-                  {type === 'links' && (
-                    <input
-                      className="form-input link-item-type"
-                      value={item.type}
-                      onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, type: e.target.value } : it))}
-                      placeholder="유형"
-                    />
-                  )}
+                  <input
+                    className="form-input link-item-type"
+                    value={item.type}
+                    onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, type: e.target.value } : it))}
+                    placeholder="유형"
+                  />
                   <input
                     className="form-input link-item-url"
                     value={item.url}
@@ -375,53 +366,44 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
                   <button className="modal-item-remove" onClick={() => setLinkItems(prev => prev.filter((_, j) => j !== i))}>×</button>
                 </div>
 
-                {/* 비고 (links 타입) */}
-                {type === 'links' && (
-                  <input
-                    className="form-input"
-                    value={item.note}
-                    onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, note: e.target.value } : it))}
-                    placeholder="비고 (선택)"
-                  />
-                )}
+                <input
+                  className="form-input"
+                  value={item.note}
+                  onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, note: e.target.value } : it))}
+                  placeholder="비고 (선택)"
+                />
 
-                {/* 파일 (links-file 타입) */}
-                {type === 'links-file' && (
-                  <div className="link-item-file-row">
-                    {(item._file || item.file) ? (
-                      <>
-                        <span className="link-item-file-name">
-                          📎 {item._file ? item._file.name : item.file.split('::')[0]}
-                        </span>
-                        <label className="link-item-file-change-btn">
-                          변경
-                          <input type="file" style={{ display: 'none' }}
-                            onChange={e => { if (e.target.files[0]) setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, _file: e.target.files[0], file: '' } : it)) }}
-                          />
-                        </label>
-                        <button className="link-item-file-remove-btn" onClick={() => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, _file: null, file: '' } : it))}>×</button>
-                      </>
-                    ) : (
-                      <label className="link-item-file-upload-btn">
-                        📎 파일 첨부 (선택)
+                <div className="link-item-file-row">
+                  {(item._file || item.file) ? (
+                    <>
+                      <span className="link-item-file-name">
+                        📎 {item._file ? item._file.name : item.file.split('::')[0]}
+                      </span>
+                      <label className="link-item-file-change-btn">
+                        변경
                         <input type="file" style={{ display: 'none' }}
-                          onChange={e => { if (e.target.files[0]) setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, _file: e.target.files[0] } : it)) }}
+                          onChange={e => { if (e.target.files[0]) setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, _file: e.target.files[0], file: '' } : it)) }}
                         />
                       </label>
-                    )}
-                  </div>
-                )}
+                      <button className="link-item-file-remove-btn" onClick={() => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, _file: null, file: '' } : it))}>×</button>
+                    </>
+                  ) : (
+                    <label className="link-item-file-upload-btn">
+                      📎 파일 첨부 (선택)
+                      <input type="file" style={{ display: 'none' }}
+                        onChange={e => { if (e.target.files[0]) setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, _file: e.target.files[0] } : it)) }}
+                      />
+                    </label>
+                  )}
+                </div>
 
-                {/* 코드 (links-file 타입만) */}
-                {type === 'links-file' && (
-                  <textarea
-                    className="form-textarea code-textarea link-item-code"
-                    value={item.code}
-                    onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, code: e.target.value } : it))}
-                    placeholder="코드 (선택)"
-                    spellCheck={false}
-                  />
-                )}
+                <textarea
+                  className="form-textarea code-textarea link-item-code"
+                  value={item.code}
+                  onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, code: e.target.value } : it))}
+                  placeholder="코드 (선택)"
+                  spellCheck={false}
+                />
               </div>
             ))}
           </div>
