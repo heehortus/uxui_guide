@@ -624,6 +624,72 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .block-info { background: var(--accent-container); border-color: var(--accent); }
 .block-info .block-label { color: var(--on-accent); }
 
+/* ─── Link Filter Dropdown ──────────────────── */
+.link-filter-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin: 16px 0 8px 0;
+}
+.link-filter-dropdown {
+  position: relative;
+}
+.link-filter-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: background 150ms, color 150ms, border-color 150ms;
+}
+.link-filter-trigger:hover {
+  border-radius: 4px;
+  background: var(--surface-container);
+  color: var(--on-surface);
+}
+
+.link-filter-trigger-label {
+  font-size: 12px;
+  font-weight: 500;
+}
+.link-filter-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+}
+
+.link-filter-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 100px;
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 91;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.link-filter-option {
+  padding: 8px 14px;
+  font-size: 13px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--on-surface);
+  transition: background 120ms;
+}
+.link-filter-option:hover {
+  background: var(--surface-container);
+}
+.link-filter-option--active {
+  font-weight: 400;
+  color: var(--tertiary);
+}
+
 /* ─── Link Table ─────────────────────────────── */
 .link-table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .link-table th {

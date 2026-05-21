@@ -32,17 +32,32 @@ function parseFile(file) {
   return { name, url, ext }
 }
 
+function FilterIcon() {
+  return (
+    <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style={{ width: 16, height: 16, display: 'block', fill: 'currentColor', flexShrink: 0 }}>
+      <path d="M3 4.875a.625.625 0 1 0 0 1.25h14a.625.625 0 1 0 0-1.25zm2.125 5.742h9.75a.625.625 0 1 0 0-1.25h-9.75a.625.625 0 1 0 0 1.25m1.5 3.883c0-.345.28-.625.625-.625h5.5a.625.625 0 1 1 0 1.25h-5.5a.625.625 0 0 1-.625-.625" />
+    </svg>
+  )
+}
+
 export default function LinksBlock({ block }) {
   const [codeModal, setCodeModal] = useState(null)
   const [lightbox, setLightbox] = useState(null)
+  const [filterType, setFilterType] = useState('전체')
+  const [filterOpen, setFilterOpen] = useState(false)
   const update = useUpdateBlock()
 
   const rows = parseRows(block.content)
 
   const isFileType = block.type === 'links-file'
 
+  const types = isFileType
+    ? []
+    : ['전체', ...Array.from(new Set(rows.map(r => r.type).filter(Boolean)))]
+
   const sortedRows = rows
     .map((r, originalIdx) => ({ ...r, originalIdx }))
+    .filter(r => isFileType || filterType === '전체' || r.type === filterType)
     .sort((a, b) => {
       const typeCompare = (a.type || '').localeCompare(b.type || '', 'ko')
       if (typeCompare !== 0) return typeCompare
@@ -72,6 +87,36 @@ export default function LinksBlock({ block }) {
 
   return (
     <>
+      {!isFileType && types.length > 1 && (
+        <div className="link-filter-wrap">
+          <div className="link-filter-dropdown">
+            <button
+              className={`link-filter-trigger${filterType !== '전체' ? ' link-filter-trigger--active' : ''}`}
+              onClick={() => setFilterOpen(o => !o)}
+              aria-expanded={filterOpen}
+            >
+              <FilterIcon />
+              {filterType !== '전체' && <span className="link-filter-trigger-label">{filterType}</span>}
+            </button>
+            {filterOpen && (
+              <>
+                <div className="link-filter-backdrop" onClick={() => setFilterOpen(false)} />
+                <div className="link-filter-menu">
+                  {types.map(t => (
+                    <button
+                      key={t}
+                      className={`link-filter-option${filterType === t ? ' link-filter-option--active' : ''}`}
+                      onClick={() => { setFilterType(t); setFilterOpen(false) }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
         <table className="link-table">
           <thead>
