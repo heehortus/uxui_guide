@@ -345,6 +345,8 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 }
 .btn-danger:hover { background: var(--destructive-container); }
 .btn-sm { height: 36px; padding: 0 16px; font-size: 14px; color: var(--on-surface);}
+.btn-sm-variant { height: 36px; padding: 0 16px; font-size: 14px; color: var(--surface);}
+
 
 /* ─── Content Area ───────────────────────────── */
 .content {
@@ -689,7 +691,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 }
 
 /* ─── Link Table ─────────────────────────────── */
-.link-table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+.link-table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed;}
 .link-table th:first-child,
 .link-table td:first-child { width: 480px; }
 .link-table th {
@@ -1088,7 +1090,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   transition: background 120ms;
 }
 .tiplist-item:last-child { border-bottom: none; }
-.tiplist-item:hover { background: var(--surface-container-low); }
+.tiplist-item:hover { background: rgba(122, 175, 255, 0.1); }
 .tiplist-item.type-tip     { background: rgba(231,240,86,0.05); }
 .tiplist-item.type-tip:hover { background: rgba(231,240,86,0.10); }
 .tiplist-item.type-warning { background: rgba(245,158,11,0.04); }

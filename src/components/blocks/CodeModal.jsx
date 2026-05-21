@@ -54,20 +54,20 @@ export default function CodeModal({ code, title, onClose, onSave, onDelete }) {
           <span className="code-modal-title">{title}</span>
           <div style={{ display: 'flex', gap: 8 }}>
             {!editing && (
-              <button className={`btn btn-ghost btn-sm${copied ? ' copied' : ''}`} onClick={handleCopy}>
+              <button className={`btn btn-ghost btn-sm-variant${copied ? ' copied' : ''}`} onClick={handleCopy}>
                 {copied ? '복사됨 ✓' : '복사'}
               </button>
             )}
             {onSave && !editing && (
-              <button className="btn btn-ghost btn-sm" onClick={handleEditToggle}>수정</button>
+              <button className="btn btn-ghost btn-sm-variant" onClick={handleEditToggle}>수정</button>
             )}
             {onDelete && !editing && (
-              <button className="btn btn-ghost btn-sm" style={{ color: '#f38ba8' }} onClick={onDelete}>삭제</button>
+              <button className="btn btn-ghost btn-sm-variant" style={{ color: '#f38ba8' }} onClick={onDelete}>삭제</button>
             )}
             {editing && (
               <>
-                <button className="btn btn-ghost btn-sm" onClick={handleCancel}>취소</button>
-                <button className="btn btn-sm" style={{ background: '#89b4fa', color: '#1e1e2e', border: 'none' }} onClick={handleSave}>저장</button>
+                <button className="btn btn-ghost btn-sm-variant" onClick={handleCancel}>취소</button>
+                <button className="btn btn-sm-variant" style={{ background: '#89b4fa', color: '#1e1e2e', border: 'none' }} onClick={handleSave}>저장</button>
               </>
             )}
             <button className="lightbox-close" style={{ position: 'static', width: 32, height: 32, fontSize: 16 }} onClick={onClose}>✕</button>

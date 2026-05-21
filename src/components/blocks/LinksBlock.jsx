@@ -136,7 +136,7 @@ export default function LinksBlock({ block }) {
         </div>
       )}
 
-      <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)' }}>
+      <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-sm)', border: '1px solid var(--outline-variant)', marginTop: '24px' }}>
         <table className="link-table">
           <thead>
             <tr>
