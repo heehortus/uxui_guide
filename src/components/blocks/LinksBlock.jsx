@@ -90,13 +90,15 @@ export default function LinksBlock({ block }) {
       {!isFileType && types.length > 1 && (
         <div className="link-filter-wrap">
           <div className="link-filter-dropdown">
+            
+
             <button
               className={`link-filter-trigger${filterType !== '전체' ? ' link-filter-trigger--active' : ''}`}
               onClick={() => setFilterOpen(o => !o)}
               aria-expanded={filterOpen}
             >
-              <FilterIcon />
               {filterType !== '전체' && <span className="link-filter-trigger-label">{filterType}</span>}
+              <FilterIcon />
             </button>
             {filterOpen && (
               <>

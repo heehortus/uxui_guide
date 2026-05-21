@@ -636,7 +636,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .link-filter-trigger {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   padding: 5px 8px;
   color: var(--on-surface-variant);
   cursor: pointer;
