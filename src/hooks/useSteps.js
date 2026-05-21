@@ -7,14 +7,52 @@ export function useSearchSteps(query) {
   return useQuery({
     queryKey: ['steps-search', query],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const q = query.trim()
+
+      // 1. step title/subtitle 검색
+      const { data: stepResults = [], error: e1 } = await supabase
         .from('steps')
         .select('id, title, subtitle, number, platform_id, platforms(label)')
-        .or(`title.ilike.%${query}%,subtitle.ilike.%${query}%`)
+        .or(`title.ilike.%${q}%,subtitle.ilike.%${q}%`)
         .order('platform_id')
         .limit(20)
-      if (error) throw error
-      return data
+      if (e1) throw e1
+
+      // 2. 링크 목록 content 검색
+      const { data: blockResults = [], error: e2 } = await supabase
+        .from('blocks')
+        .select('content, steps(id, title, subtitle, number, platform_id, platforms(label))')
+        .in('type', ['links', 'links-file'])
+        .ilike('content', `%${q}%`)
+        .limit(20)
+      if (e2) throw e2
+
+      // 중복 제거 후 병합
+      const seen = new Set()
+      const merged = []
+
+      for (const r of stepResults) {
+        if (!seen.has(r.id)) {
+          seen.add(r.id)
+          merged.push(r)
+        }
+      }
+
+      for (const b of blockResults) {
+        const s = b.steps
+        if (!s) continue
+        const matchLine = (b.content || '').split('\n').find(l =>
+          l.toLowerCase().includes(q.toLowerCase())
+        )
+        const matchName = matchLine ? matchLine.split('|')[0]?.trim() : ''
+        if (!seen.has(s.id)) {
+          seen.add(s.id)
+          merged.push({ ...s, matchedLinkName: matchName })
+        }
+      }
+
+      merged.sort((a, b) => (a.platform_id || '').localeCompare(b.platform_id || ''))
+      return merged
     },
     enabled: query.trim().length > 0,
   })

@@ -41,6 +41,14 @@ export default function LinksBlock({ block }) {
 
   const isFileType = block.type === 'links-file'
 
+  const sortedRows = rows
+    .map((r, originalIdx) => ({ ...r, originalIdx }))
+    .sort((a, b) => {
+      const typeCompare = (a.type || '').localeCompare(b.type || '', 'ko')
+      if (typeCompare !== 0) return typeCompare
+      return (a.name || '').localeCompare(b.name || '', 'ko')
+    })
+
   async function handleCodeSave(idx, newCode) {
     const next = rows.map((r, i) => i === idx ? { ...r, code: newCode } : r)
     await update.mutateAsync({
@@ -76,10 +84,10 @@ export default function LinksBlock({ block }) {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, i) => {
+            {sortedRows.map((row) => {
               const cls = BADGE[row.type] || 'book'
               return (
-                <tr key={i}>
+                <tr key={row.originalIdx}>
                   <td>{row.name}</td>
                   {!isFileType && <td><span className={`badge-type ${cls}`}>{row.type}</span></td>}
                   <td>
@@ -106,7 +114,7 @@ export default function LinksBlock({ block }) {
                       {row.code && (
                         <button
                           className="link-code-btn"
-                          onClick={() => setCodeModal({ idx: i, code: row.code, title: row.name })}
+                          onClick={() => setCodeModal({ idx: row.originalIdx, code: row.code, title: row.name })}
                         >
                           코드 ›
                         </button>

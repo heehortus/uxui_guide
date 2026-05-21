@@ -157,6 +157,7 @@ function SearchResults({ query, onSelect }) {
           <span className="search-result-platform">{r.platforms?.label}</span>
           <span className="search-result-title">[{r.number}] {r.title}</span>
           {r.subtitle && <span className="search-result-sub">{r.subtitle}</span>}
+          {r.matchedLinkName && <span className="search-result-link">{r.matchedLinkName}</span>}
         </div>
       ))}
     </div>
