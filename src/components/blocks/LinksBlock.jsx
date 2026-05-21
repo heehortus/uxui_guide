@@ -155,7 +155,7 @@ export default function LinksBlock({ block }) {
               const fileData = isFileExtra(row.extra) ? parseFile(row.extra) : null
               return (
                 <tr key={row.originalIdx}>
-                  <td>{row.name.slice(0, 20)}{row.name.length > 20 ? '…' : ''}</td>
+                  <td>{row.name}</td>
                   {hasType && <td>{row.type && <span className={`badge-type ${cls}`}>{row.type}</span>}</td>}
                   {hasUrl && (
                     <td>
@@ -261,7 +261,8 @@ function DescModal({ title, desc, onClose, onSave, onDelete }) {
   }, [onClose])
 
   function handleCopy() {
-    const text = desc.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim()
+    const body = desc.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim()
+    const text = title ? `${title}\n\n${body}` : body
     navigator.clipboard.writeText(text).catch(() => {
       const ta = document.createElement('textarea')
       ta.value = text

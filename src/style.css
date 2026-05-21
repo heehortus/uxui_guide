@@ -332,7 +332,6 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .btn-primary:hover { background: var(--primary-container); }
 .btn-secondary {
   background: transparent; color: var(--on-surface);
-  border: 1px solid var(--outline-variant);
 }
 .btn-secondary:hover { background: var(--surface-container-high); border-color: var(--outline); }
 .btn-ghost {
@@ -343,7 +342,6 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .btn-ghost.copied { color: #1a5c00; background: #d4f7c5; }
 .btn-danger {
   background: transparent; color: var(--destructive);
-  border: 1px solid var(--destructive-container);
 }
 .btn-danger:hover { background: var(--destructive-container); }
 .btn-sm { height: 36px; padding: 0 16px; font-size: 14px; color: var(--on-surface);}
@@ -693,7 +691,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 /* ─── Link Table ─────────────────────────────── */
 .link-table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
 .link-table th:first-child,
-.link-table td:first-child { width: 240px; }
+.link-table td:first-child { width: 480px; }
 .link-table th {
   text-align: left;
   padding: 8px 12px;
