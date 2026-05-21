@@ -80,6 +80,80 @@ export function useReorderBlocks() {
   })
 }
 
+export function useCopyBlockToStep() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ block, targetStepId }) => {
+      const { data: existing } = await supabase
+        .from('blocks')
+        .select('order_index')
+        .eq('step_id', targetStepId)
+        .order('order_index', { ascending: false })
+        .limit(1)
+        .single()
+      const order_index = existing ? existing.order_index + 1 : 0
+
+      const { data: newBlock, error } = await supabase
+        .from('blocks')
+        .insert({ step_id: targetStepId, type: block.type, label: block.label, content: block.content, order_index })
+        .select()
+        .single()
+      if (error) throw error
+
+      if (block.block_items?.length) {
+        const rows = block.block_items.map((it, i) => ({
+          block_id: newBlock.id, type: it.type, text: it.text, order_index: i,
+        }))
+        const { error: ie } = await supabase.from('block_items').insert(rows)
+        if (ie) throw ie
+      }
+      return { newBlock, targetStepId }
+    },
+    onSuccess: ({ targetStepId }) => {
+      qc.invalidateQueries({ queryKey: ['step', targetStepId] })
+    },
+  })
+}
+
+export function useDuplicateBlock() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ block }) => {
+      // 현재 블록 바로 뒤 order_index 계산
+      const { data: siblings } = await supabase
+        .from('blocks')
+        .select('order_index')
+        .eq('step_id', block.step_id)
+        .gt('order_index', block.order_index)
+        .order('order_index', { ascending: true })
+        .limit(1)
+      const nextIndex = siblings?.[0]?.order_index ?? null
+      const newIndex = nextIndex !== null
+        ? (block.order_index + nextIndex) / 2
+        : block.order_index + 1
+
+      const { data: newBlock, error } = await supabase
+        .from('blocks')
+        .insert({ step_id: block.step_id, type: block.type, label: block.label, content: block.content, order_index: newIndex })
+        .select()
+        .single()
+      if (error) throw error
+
+      if (block.block_items?.length) {
+        const rows = block.block_items.map((it, i) => ({
+          block_id: newBlock.id, type: it.type, text: it.text, order_index: i,
+        }))
+        const { error: ie } = await supabase.from('block_items').insert(rows)
+        if (ie) throw ie
+      }
+      return newBlock
+    },
+    onSuccess: (block) => {
+      qc.invalidateQueries({ queryKey: ['step', block.step_id] })
+    },
+  })
+}
+
 export function useDeleteBlock() {
   const qc = useQueryClient()
   return useMutation({

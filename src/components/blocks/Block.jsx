@@ -26,6 +26,13 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
   const deleteBlock = useDeleteBlock()
   const toast = useToast()
 
+  function handleCopy() {
+    setMenuOpen(false)
+    const { type, label, content, block_items } = block
+    localStorage.setItem('uxui-copied-block', JSON.stringify({ type, label, content, block_items }))
+    toast('복사했습니다. Ctrl+V로 붙여넣으세요.')
+  }
+
   async function handleDelete() {
     setMenuOpen(false)
     if (!confirm('이 블록을 삭제할까요?')) return
@@ -45,6 +52,7 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
 
         {/* 데스크탑 액션 버튼 */}
         <div className="block-actions">
+          <button className="btn btn-ghost btn-sm" onClick={handleCopy}>복사</button>
           <button className="btn btn-ghost btn-sm" onClick={() => setEditing(true)}>수정</button>
           <button className="btn btn-ghost btn-sm" style={{ color: 'var(--destructive)' }} onClick={handleDelete}>
             삭제
@@ -67,6 +75,9 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
         <div className="block-action-sheet-overlay" onClick={() => setMenuOpen(false)}>
           <div className="block-action-sheet" onClick={e => e.stopPropagation()}>
             <div className="block-action-sheet-handle" />
+            <button className="block-action-sheet-item" onClick={handleCopy}>
+              복사
+            </button>
             <button className="block-action-sheet-item" onClick={() => { setMenuOpen(false); setEditing(true) }}>
               수정
             </button>

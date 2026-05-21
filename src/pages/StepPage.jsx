@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { usePlatforms } from '../hooks/usePlatforms'
 import { useStep, useSteps, useDeleteStep } from '../hooks/useSteps'
-import { useReorderBlocks } from '../hooks/useBlocks'
+import { useReorderBlocks, useCreateBlock } from '../hooks/useBlocks'
 import Block from '../components/blocks/Block'
 import BlockModal from '../components/modals/BlockModal'
 import StepModal from '../components/modals/StepModal'
@@ -22,8 +22,46 @@ export default function StepPage() {
   const deleteStep = useDeleteStep()
 
   const reorderBlocks = useReorderBlocks()
+  const createBlock = useCreateBlock()
   const [editStep, setEditStep] = useState(false)
-  const [addBlock, setAddBlock] = useState(null) // null | block type string
+  const [addBlock, setAddBlock] = useState(null)
+  const [ctxMenu, setCtxMenu] = useState(null) // { x, y }
+
+  async function handlePaste() {
+    setCtxMenu(null)
+    const raw = localStorage.getItem('uxui-copied-block')
+    if (!raw) return
+    const copied = JSON.parse(raw)
+    await createBlock.mutateAsync({
+      step_id: stepId,
+      type: copied.type,
+      label: copied.label,
+      content: copied.content,
+      items: (copied.block_items || []).map(it => ({ type: it.type, text: it.text })),
+    })
+  }
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        const tag = document.activeElement?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return
+        if (!localStorage.getItem('uxui-copied-block')) return
+        e.preventDefault()
+        handlePaste()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [stepId])
+
+  function handleContextMenu(e) {
+    if (!localStorage.getItem('uxui-copied-block')) return
+    const tag = e.target?.tagName
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'A' || tag === 'BUTTON') return
+    e.preventDefault()
+    setCtxMenu({ x: e.clientX, y: e.clientY })
+  }
 
   function handleMoveBlock(blocks, index, dir) {
     const swapIndex = index + dir
@@ -71,7 +109,7 @@ export default function StepPage() {
         </button>
       </div>
 
-      <div className="content-blocks">
+      <div className="content-blocks" onContextMenu={handleContextMenu}>
         {(step.blocks ?? []).map((block, i, arr) => (
           <Block
             key={block.id}
@@ -82,6 +120,28 @@ export default function StepPage() {
           />
         ))}
       </div>
+
+      {ctxMenu && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 9998 }} onClick={() => setCtxMenu(null)} />
+          <div
+            style={{ position: 'fixed', left: ctxMenu.x, top: ctxMenu.y, zIndex: 9999,
+              background: 'var(--surface)', border: '1px solid var(--outline-variant)',
+              borderRadius: 'var(--radius-sm)', boxShadow: 'var(--shadow-md)', padding: '4px 0', minWidth: 140 }}
+          >
+            <button
+              onClick={handlePaste}
+              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 16px',
+                fontSize: 14, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--on-surface)' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-container)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            >
+              붙여넣기
+            </button>
+          </div>
+        </>
+      )}
+
 
       {/* 단계 수정 모달 */}
       <StepModal
