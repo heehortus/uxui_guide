@@ -73,7 +73,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   position: sticky;
   top: 0;
   height: 100vh;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
   transition: width 250ms ease;
   width: 280px;
@@ -133,7 +133,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .sidebar-nav {
   flex: 1;
   padding: var(--space-sm) 0;
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 
 /* ─── Sidebar Search ─────────────────────────── */
@@ -1550,4 +1550,39 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   .file-preview-img { max-width: 100%; }
   .file-preview-clickable { margin-top: 0;}
   .inline-media-items { column-gap: 8px; margin-bottom: 0;}
+}
+
+/* ─── Floating Action Button ─────────────────── */
+.fab-btn {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  z-index: 200;
+  opacity: 0;
+  transform: scale(0.8) translateY(8px);
+  pointer-events: none;
+  transition: opacity 200ms, transform 200ms;
+}
+.fab-btn--visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+.fab-btn:hover {
+  background: var(--primary-container);
+  transform: scale(1.08);
+}
+@media (max-width: 768px) {
+  .fab-btn { right: 20px; bottom: 20px; }
 }

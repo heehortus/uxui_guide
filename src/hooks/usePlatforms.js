@@ -57,6 +57,18 @@ export function useUpdatePlatform() {
   })
 }
 
+export function useReorderPlatforms() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (platforms) => {
+      await Promise.all(platforms.map(({ id, order_index }) =>
+        supabase.from('platforms').update({ order_index }).eq('id', id)
+      ))
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
+  })
+}
+
 export function useDeletePlatform() {
   const qc = useQueryClient()
   return useMutation({

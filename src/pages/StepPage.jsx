@@ -7,6 +7,7 @@ import Block from '../components/blocks/Block'
 import BlockModal from '../components/modals/BlockModal'
 import StepModal from '../components/modals/StepModal'
 import PageActionsMenu from '../components/ui/PageActionsMenu'
+import FabButton from '../components/ui/FabButton'
 import { useToast } from '../context/ToastContext'
 
 
@@ -100,6 +101,7 @@ export default function StepPage() {
         onClose={() => setAddBlock(null)}
         stepId={stepId}
       />
+      <FabButton onClick={() => setAddBlock('default')} title="블록 추가" />
     </>
   )
 }
