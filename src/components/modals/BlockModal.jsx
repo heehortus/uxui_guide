@@ -23,7 +23,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
   const [type, setType] = useState('default')
   const [label, setLabel] = useState('')
   const [content, setContent] = useState('')
-  const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '' }])
+  const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '' }])
   const [processItems, setProcessItems] = useState([{ title: '', desc: '' }])
   const [kakaoItems, setKakaoItems] = useState([{ title: '', body: '' }])
   const [codeContent, setCodeContent] = useState('')
@@ -59,11 +59,11 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         const rows = (editing?.content ?? '').split('\n').filter(Boolean)
         setLinkItems(rows.length > 0
           ? rows.map(r => {
-              const [name = '', type = '', url = '', extra = '', code = ''] = r.split('|').map(s => s?.trim() ?? '')
+              const [name = '', type = '', url = '', extra = '', code = '', desc = ''] = r.split('|').map(s => s?.trim() ?? '')
               const isFileExtra = extra.includes('::')
-              return { name, type, url, note: isFileExtra ? '' : extra, file: isFileExtra ? extra : '', _file: null, code: code.replace(/\\n/g, '\n') }
+              return { name, type, url, note: isFileExtra ? '' : extra, file: isFileExtra ? extra : '', _file: null, code: code.replace(/\\n/g, '\n'), desc: desc.replace(/\\n/g, '\n') }
             })
-          : [{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '' }]
+          : [{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '' }]
         )
       } else if (editing?.type === 'kakao') {
         const msgs = (editing?.content ?? '').split(/\n---\n/).map(s => s.trim()).filter(Boolean)
@@ -143,7 +143,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         .filter(it => it.name.trim() || it.url.trim())
         .map(it => {
           const extra = it.file ? it.file : (it.note ?? '')
-          return `${it.name}|${it.type}|${it.url}|${extra}|${it.code.replace(/\n/g, '\\n')}`
+          return `${it.name}|${it.type}|${it.url}|${extra}|${it.code.replace(/\n/g, '\\n')}|${(it.desc || '').replace(/\n/g, '\\n')}`
         })
         .join('\n')
     }
@@ -366,6 +366,14 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
                   <button className="modal-item-remove" onClick={() => setLinkItems(prev => prev.filter((_, j) => j !== i))}>×</button>
                 </div>
 
+                <div style={{ marginBottom: 4 }}>
+                  <RichEditor
+                    value={item.desc}
+                    onChange={v => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, desc: v } : it))}
+                    placeholder="내용 (선택)"
+                  />
+                </div>
+
                 <input
                   className="form-input"
                   value={item.note}
@@ -409,7 +417,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
           </div>
           <button
             className="link-item-add-btn"
-            onClick={() => setLinkItems(prev => [...prev, { name: '', type: '', url: '', note: '', file: '', _file: null, code: '' }])}
+            onClick={() => setLinkItems(prev => [...prev, { name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '' }])}
           >
             + 항목 추가
           </button>

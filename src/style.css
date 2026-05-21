@@ -346,7 +346,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   border: 1px solid var(--destructive-container);
 }
 .btn-danger:hover { background: var(--destructive-container); }
-.btn-sm { height: 36px; padding: 0 16px; font-size: 14px; }
+.btn-sm { height: 36px; padding: 0 16px; font-size: 14px; color: var(--on-surface);}
 
 /* ─── Content Area ───────────────────────────── */
 .content {
@@ -691,14 +691,14 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 }
 
 /* ─── Link Table ─────────────────────────────── */
-.link-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.link-table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+.link-table th:first-child,
+.link-table td:first-child { width: 240px; }
 .link-table th {
   text-align: left;
   padding: 8px 12px;
   background: var(--surface-container);
-  font-size: 12px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.05em; color: var(--on-surface-variant);
-  border-bottom: 1px solid var(--outline-variant);
+  font-size: 14px; font-weight: 600;
 }
 .link-table th:first-child { border-radius: var(--radius-sm) 0 0 0; }
 .link-table th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
@@ -706,6 +706,10 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   padding: 8px 12px;
   border-bottom: 1px solid var(--outline-variant);
   vertical-align: top; line-height: 1.5;
+  --webkit-line-clamp: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .link-table tr:last-child td { border-bottom: none; }
 .link-table tr:hover td { background: var(--surface-container-low); }
@@ -728,6 +732,16 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 }
 .link-file-btn:hover { background: var(--surface-container-high); }
 .link-table-file-cell { padding: 6px 12px; }
+.link-desc-preview {
+  display: block;
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.link-desc-preview:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .link-file-thumb {
   max-width: 120px;
   max-height: 80px;
@@ -779,6 +793,27 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   flex-shrink: 0;
 }
 .link-item-file-remove-btn:hover { color: var(--destructive); }
+
+/* ─── Desc Modal Actions ─────────────────────── */
+.desc-modal-actions {
+  display: flex;                                                                                            
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--outline-variant);
+}
+.desc-modal-action-btn {
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.desc-modal-action-btn:hover { color: var(--on-surface); }
+.desc-modal-action-btn--save { color: var(--accent); font-weight: 600; }
+.desc-modal-action-btn--save:hover { color: var(--on-accent); }
+.desc-modal-action-btn--delete { color: var(--destructive); }
+.desc-modal-action-btn--delete:hover { color: var(--destructive); opacity: 0.8; }
 
 /* ─── Code Modal ─────────────────────────────── */
 .code-modal {
@@ -1419,8 +1454,9 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .modal-header {
   padding: 20px 24px 0;
   display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
 }
-.modal-title { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; }
+.modal-title { font-size: 16px; font-weight: 500; letter-spacing: -0.01em; max-width: 480px;}
 .modal-close {
   width: 32px; height: 32px; border-radius: var(--radius-full);
   background: var(--surface-container);

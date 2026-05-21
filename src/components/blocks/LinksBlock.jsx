@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useUpdateBlock } from '../../hooks/useBlocks'
 import { IMAGE_EXT, VIDEO_EXT, getExt } from '../../lib/fileUtils'
 import CodeModal from './CodeModal'
 import Lightbox from './Lightbox'
+import Modal from '../ui/Modal'
+import RichEditor from '../ui/RichEditor'
 
 const BADGE = {
   쇼핑: 'shop', 예약: 'shop',
@@ -13,13 +15,15 @@ const BADGE = {
 
 function parseRows(content) {
   return (content || '').split('\n').filter(l => l.trim()).map(r => {
-    const [name = '', type = '', url = '', extra = '', code = ''] = r.split('|').map(s => s?.trim() ?? '')
-    return { name, type, url, extra, code: code.replace(/\\n/g, '\n') }
+    const [name = '', type = '', url = '', extra = '', code = '', desc = ''] = r.split('|').map(s => s?.trim() ?? '')
+    return { name, type, url, extra, code: code.replace(/\\n/g, '\n'), desc: desc.replace(/\\n/g, '\n') }
   })
 }
 
 function serializeRows(rows) {
-  return rows.map(r => `${r.name}|${r.type}|${r.url}|${r.extra}|${r.code.replace(/\n/g, '\\n')}`).join('\n')
+  return rows.map(r =>
+    `${r.name}|${r.type}|${r.url}|${r.extra}|${r.code.replace(/\n/g, '\\n')}|${(r.desc || '').replace(/\n/g, '\\n')}`
+  ).join('\n')
 }
 
 function parseFile(file) {
@@ -35,6 +39,10 @@ function isFileExtra(extra) {
   return Boolean(extra && extra.includes('::'))
 }
 
+function stripHtml(html) {
+  return (html || '').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim()
+}
+
 function FilterIcon() {
   return (
     <svg aria-hidden="true" role="graphics-symbol" viewBox="0 0 20 20" style={{ width: 16, height: 16, display: 'block', fill: 'currentColor', flexShrink: 0 }}>
@@ -46,6 +54,7 @@ function FilterIcon() {
 export default function LinksBlock({ block }) {
   const [codeModal, setCodeModal] = useState(null)
   const [lightbox, setLightbox] = useState(null)
+  const [descModal, setDescModal] = useState(null)
   const [filterType, setFilterType] = useState('전체')
   const [filterOpen, setFilterOpen] = useState(false)
   const update = useUpdateBlock()
@@ -59,6 +68,7 @@ export default function LinksBlock({ block }) {
   const hasFile = allRows.some(r => isFileExtra(r.extra))
   const hasCode = allRows.some(r => r.code)
   const hasNote = allRows.some(r => r.extra && !isFileExtra(r.extra))
+  const hasDesc = allRows.some(r => r.desc)
 
   const types = hasType
     ? ['전체', ...Array.from(new Set(allRows.map(r => r.type).filter(Boolean)))]
@@ -135,6 +145,7 @@ export default function LinksBlock({ block }) {
               {hasUrl  && <th>링크</th>}
               {hasFile && <th>파일</th>}
               {hasCode && <th>코드</th>}
+              {hasDesc && <th className="col-desc">내용</th>}
               {hasNote && <th>비고</th>}
             </tr>
           </thead>
@@ -144,7 +155,7 @@ export default function LinksBlock({ block }) {
               const fileData = isFileExtra(row.extra) ? parseFile(row.extra) : null
               return (
                 <tr key={row.originalIdx}>
-                  <td>{row.name}</td>
+                  <td>{row.name.slice(0, 20)}{row.name.length > 20 ? '…' : ''}</td>
                   {hasType && <td>{row.type && <span className={`badge-type ${cls}`}>{row.type}</span>}</td>}
                   {hasUrl && (
                     <td>
@@ -177,6 +188,21 @@ export default function LinksBlock({ block }) {
                       )}
                     </td>
                   )}
+                  {hasDesc && (
+                    <td className="col-desc">
+                      {row.desc && (() => {
+                        const preview = stripHtml(row.desc)
+                        return (
+                          <span
+                            className="link-desc-preview"
+                            onClick={() => setDescModal({ title: row.name, desc: row.desc, idx: row.originalIdx })}
+                          >
+                            {preview}
+                          </span>
+                        )
+                      })()}
+                    </td>
+                  )}
                   {hasNote && (
                     <td><span style={{ fontSize: 13 }}>{!isFileExtra(row.extra) ? row.extra : ''}</span></td>
                   )}
@@ -191,6 +217,24 @@ export default function LinksBlock({ block }) {
         <Lightbox {...lightbox} onClose={() => setLightbox(null)} />
       )}
 
+      {descModal && (
+        <DescModal
+          title={descModal.title}
+          desc={descModal.desc}
+          onClose={() => setDescModal(null)}
+          onSave={async newDesc => {
+            const next = rows.map((r, i) => i === descModal.idx ? { ...r, desc: newDesc } : r)
+            await update.mutateAsync({
+              id: block.id, step_id: block.step_id,
+              type: block.type, label: block.label,
+              content: serializeRows(next), items: [],
+            })
+            setDescModal(prev => ({ ...prev, desc: newDesc }))
+          }}
+          onDelete={() => handleRowDelete(descModal.idx)}
+        />
+      )}
+
       {codeModal && (
         <CodeModal
           code={codeModal.code}
@@ -201,5 +245,81 @@ export default function LinksBlock({ block }) {
         />
       )}
     </>
+  )
+}
+
+function DescModal({ title, desc, onClose, onSave, onDelete }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(desc)
+  const [copied, setCopied] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  function handleCopy() {
+    const text = desc.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim()
+    navigator.clipboard.writeText(text).catch(() => {
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.cssText = 'position:fixed;opacity:0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }).finally(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave(draft)
+    setSaving(false)
+    setEditing(false)
+  }
+
+  return (
+    <div className="modal-overlay open" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="modal">
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flex: 1, alignItems: 'center', padding: '12px 16px' }}>
+            {!editing && (
+              <button className="btn-sm" onClick={handleCopy}>
+                {copied ? '복사됨 ✓' : '복사'}
+              </button>
+            )}
+            {!editing && (
+              <button className="btn-sm" onClick={() => { setDraft(desc); setEditing(true) }}>수정</button>
+            )}
+            {!editing && onDelete && (
+              <button className="btn-sm" style={{ color: 'var(--destructive)' }} onClick={onDelete}>삭제</button>
+            )}
+            {editing && (
+              <>
+                <button className="btn-sm" onClick={() => setEditing(false)}>취소</button>
+                <button className="btn-sm" style={{ color: 'var(--accent)', fontWeight: 600 }} onClick={handleSave} disabled={saving}>
+                  {saving ? '저장 중…' : '저장'}
+                </button>
+              </>
+            )}
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="modal-header" style={{ borderTop: '1px solid var(--outline-variant)', borderBottom: 'none' }}>
+          <div className="modal-title">{title}</div>
+        </div>
+        <div className="modal-body">
+          {editing
+            ? <RichEditor value={draft} onChange={setDraft} />
+            : <div className="rich-content" style={{ fontSize: 14, lineHeight: 1.7 }} dangerouslySetInnerHTML={{ __html: desc }} />
+          }
+        </div>
+      </div>
+    </div>
   )
 }
