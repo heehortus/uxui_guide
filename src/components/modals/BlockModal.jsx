@@ -24,7 +24,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
   const [label, setLabel] = useState('')
   const [content, setContent] = useState('')
   const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '' }])
-  const [processItems, setProcessItems] = useState([{ title: '', desc: '' }])
+  const [processItems, setProcessItems] = useState([{ title: '', desc: '', num: '' }])
   const [kakaoItems, setKakaoItems] = useState([{ title: '', body: '' }])
   const [codeContent, setCodeContent] = useState('')
   const [fileContent, setFileContent] = useState('')   // stored as "name|url|size\n..."
@@ -50,10 +50,10 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         const rows = (editing?.content ?? '').split('\n').filter(Boolean)
         setProcessItems(rows.length > 0
           ? rows.map(r => {
-              const [title = '', desc = ''] = r.split('|').map(s => s?.trim() ?? '')
-              return { title, desc: desc.replace(/\\n/g, '\n') }
+              const [title = '', desc = '', num = ''] = r.split('|').map(s => s?.trim() ?? '')
+              return { title, desc: desc.replace(/\\n/g, '\n'), num }
             })
-          : [{ title: '', desc: '' }]
+          : [{ title: '', desc: '', num: '' }]
         )
       } else if (editing?.type === 'links' || editing?.type === 'links-file') {
         const rows = (editing?.content ?? '').split('\n').filter(Boolean)
@@ -116,7 +116,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
     if (type === 'process') {
       actualContent = processItems
         .filter(it => it.title.trim())
-        .map(it => `${it.title}|${it.desc.replace(/\n/g, '\\n')}`)
+        .map(it => `${it.title}|${it.desc.replace(/\n/g, '\\n')}|${it.num || ''}`)
         .join('\n')
     } else if (type === 'links') {
       let resolvedLinkItems = linkItems
@@ -281,7 +281,12 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
             {processItems.map((item, i) => (
               <div key={i} className="process-item-block">
                 <div className="process-item-left">
-                  <div className="process-item-num">{i + 1}</div>
+                  <input
+                    className="process-item-num-input"
+                    value={item.num}
+                    onChange={e => setProcessItems(prev => prev.map((it, j) => j === i ? { ...it, num: e.target.value } : it))}
+                    placeholder={String(i + 1)}
+                  />
                   <div className="process-item-order-btns">
                     <button
                       className="process-order-btn"
@@ -324,7 +329,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
           <button
             className="link-item-add-btn"
             style={{ marginTop: 8 }}
-            onClick={() => setProcessItems(prev => [...prev, { title: '', desc: '' }])}
+            onClick={() => setProcessItems(prev => [...prev, { title: '', desc: '', num: '' }])}
           >
             + 단계 추가
           </button>

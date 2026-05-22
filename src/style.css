@@ -962,6 +962,21 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   font-size: 12px; font-weight: 700;
   margin-top: 5px;
 }
+.process-item-num-input {
+  width: 36px; height: 36px;
+  background: var(--tertiary); color: var(--on-tertiary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-full);
+  text-align: center;
+  font-size: 13px; font-weight: 700;
+  padding: 0;
+  margin-top: 2px;
+  transition: border-color 150ms;
+}
+.process-item-num-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
 .process-item-order-btns {
   display: flex; flex-direction: column; gap: 4px;
 }
