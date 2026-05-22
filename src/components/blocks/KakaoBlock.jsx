@@ -8,7 +8,7 @@ export default function KakaoBlock({ content }) {
 
   return (
     <div className="kakao-messages">
-      {messages.map((msg, i) => {
+{messages.map((msg, i) => {
         const lines = msg.split('\n')
         let title = ''
         let body = msg

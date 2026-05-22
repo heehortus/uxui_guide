@@ -14,10 +14,14 @@ export default function FileBlock({ content }) {
   return (
     <>
       <div className="file-block-content">
-        {media.map((r, i) =>
-          IMAGE_EXT.includes(r.ext)
-            ? <img key={i} src={r.url} alt={r.name} className="file-preview-img file-preview-clickable" onClick={() => setLightbox(r)} />
-            : <video key={i} src={r.url} controls className="file-preview-video file-preview-clickable" onClick={() => setLightbox(r)} />
+        {media.length > 0 && (
+          <div className="file-media-grid">
+            {media.map((r, i) =>
+              IMAGE_EXT.includes(r.ext)
+                ? <img key={i} src={r.url} alt={r.name} className="file-preview-img file-preview-clickable" onClick={() => setLightbox(r)} />
+                : <video key={i} src={r.url} controls className="file-preview-video file-preview-clickable" onClick={() => setLightbox(r)} />
+            )}
+          </div>
         )}
         {files.length > 0 && (
           <div className="file-list">

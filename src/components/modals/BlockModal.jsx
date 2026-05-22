@@ -25,7 +25,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
   const [content, setContent] = useState('')
   const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '' }])
   const [processItems, setProcessItems] = useState([{ title: '', desc: '', num: '' }])
-  const [kakaoItems, setKakaoItems] = useState([{ title: '', body: '' }])
+  const [kakaoItems, setKakaoItems] = useState([{ title: '클라이언트에게 다음 메시지를 전송합니다.', body: '' }])
   const [codeContent, setCodeContent] = useState('')
   const [fileContent, setFileContent] = useState('')   // stored as "name|url|size\n..."
   const [pendingFiles, setPendingFiles] = useState([]) // File objects not yet uploaded
@@ -42,7 +42,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       setType(editing?.type === 'links-file' ? 'links' : (editing?.type ?? 'default'))
       setLabel(editing?.label ?? '')
       setContent('')
-      setKakaoItems([{ title: '', body: '' }])
+      setKakaoItems([{ title: '클라이언트에게 다음 메시지를 전송합니다.', body: '' }])
       setCodeContent('')
       setFileContent('')
       setPendingFiles([])
@@ -459,7 +459,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
           <button
             className="link-item-add-btn"
             style={{ marginTop: 8 }}
-            onClick={() => setKakaoItems(prev => [...prev, { title: '', body: '' }])}
+            onClick={() => setKakaoItems(prev => [...prev, { title: '클라이언트에게 다음 메시지를 전송합니다.', body: '' }])}
           >
             + 메시지 추가
           </button>
