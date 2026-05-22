@@ -133,8 +133,10 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .sidebar-nav {
   flex: 1;
   padding: var(--space-sm) 0;
-  overflow-y: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
+.sidebar-nav::-webkit-scrollbar { display: none; }
 
 /* ─── Sidebar Search ─────────────────────────── */
 .sidebar-search-wrap {
@@ -1341,14 +1343,14 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .lightbox-name {
   font-size: 13px; color: rgba(255,255,255,0.6); text-align: center;
 }
-.file-block-content { display: flex; flex-direction: column; gap: 12px; }                                                  
-.file-preview-img {                                                                                           
+.file-block-content { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.file-preview-img {
   width: auto;
   max-width: 480px;
-  margin-top: 24px;                                                                                            
-  border-radius: var(--radius-sm);                                                                                  
-  display: block;                                                                                                        
-  object-fit: contain;                                                                                              
+  margin-top: 24px;
+  border-radius: var(--radius-sm);
+  display: block;
+  object-fit: contain;
 }                                                                                                                   
 
 .file-preview-video {                                                                                               

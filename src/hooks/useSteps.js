@@ -3,6 +3,41 @@ import { supabase } from '../lib/supabase'
 
 const QK = (platformId) => ['steps', platformId]
 
+function extractSnippet(content, type, label, q) {
+  const ql = q.toLowerCase()
+
+  // label이 매칭되면 label을 스니펫으로
+  if (label && label.toLowerCase().includes(ql)) return label
+
+  if (!content) return ''
+
+  // links/links-file: 링크명 추출
+  if (type === 'links' || type === 'links-file') {
+    const matchLine = content.split('\n').find(l => l.toLowerCase().includes(ql))
+    return matchLine ? matchLine.split('|')[0]?.trim() : ''
+  }
+
+  // process: 단계 제목 추출
+  if (type === 'process') {
+    const matchLine = content.split('\n').find(l => l.toLowerCase().includes(ql))
+    return matchLine ? matchLine.split('|')[0]?.trim() : ''
+  }
+
+  // kakao: 매칭 라인
+  if (type === 'kakao') {
+    const matchLine = content.split('\n').find(l => l.toLowerCase().includes(ql))
+    return matchLine ? matchLine.replace(/^# /, '').trim() : ''
+  }
+
+  // 그 외(default, tip, warning, info, code 등): HTML 제거 후 스니펫
+  const stripped = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+  const idx = stripped.toLowerCase().indexOf(ql)
+  if (idx === -1) return stripped.slice(0, 60)
+  const start = Math.max(0, idx - 20)
+  const end = Math.min(stripped.length, idx + ql.length + 40)
+  return (start > 0 ? '…' : '') + stripped.slice(start, end) + (end < stripped.length ? '…' : '')
+}
+
 export function useSearchSteps(query) {
   return useQuery({
     queryKey: ['steps-search', query],
@@ -18,14 +53,21 @@ export function useSearchSteps(query) {
         .limit(20)
       if (e1) throw e1
 
-      // 2. 링크 목록 content 검색
+      // 2. 모든 블록 content/label 검색
       const { data: blockResults = [], error: e2 } = await supabase
         .from('blocks')
-        .select('content, steps(id, title, subtitle, number, platform_id, platforms(label))')
-        .in('type', ['links', 'links-file'])
-        .ilike('content', `%${q}%`)
-        .limit(20)
+        .select('content, label, type, steps(id, title, subtitle, number, platform_id, platforms(label))')
+        .or(`content.ilike.%${q}%,label.ilike.%${q}%`)
+        .limit(30)
       if (e2) throw e2
+
+      // 3. block_items text 검색
+      const { data: itemResults = [], error: e3 } = await supabase
+        .from('block_items')
+        .select('text, blocks(label, type, step_id, steps(id, title, subtitle, number, platform_id, platforms(label)))')
+        .ilike('text', `%${q}%`)
+        .limit(20)
+      if (e3) throw e3
 
       // 중복 제거 후 병합
       const seen = new Set()
@@ -41,13 +83,27 @@ export function useSearchSteps(query) {
       for (const b of blockResults) {
         const s = b.steps
         if (!s) continue
-        const matchLine = (b.content || '').split('\n').find(l =>
-          l.toLowerCase().includes(q.toLowerCase())
-        )
-        const matchName = matchLine ? matchLine.split('|')[0]?.trim() : ''
+        const snippet = extractSnippet(b.content, b.type, b.label, q)
         if (!seen.has(s.id)) {
           seen.add(s.id)
-          merged.push({ ...s, matchedLinkName: matchName })
+          merged.push({ ...s, matchedLinkName: snippet })
+        }
+      }
+
+      for (const it of itemResults) {
+        const blk = it.blocks
+        const s = blk?.steps
+        if (!s) continue
+        if (!seen.has(s.id)) {
+          seen.add(s.id)
+          // item text에서 스니펫 추출 (HTML 제거)
+          const stripped = (it.text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+          const ql = q.toLowerCase()
+          const idx = stripped.toLowerCase().indexOf(ql)
+          const start = Math.max(0, idx - 20)
+          const end = Math.min(stripped.length, idx + ql.length + 40)
+          const snippet = (start > 0 ? '…' : '') + stripped.slice(start, end) + (end < stripped.length ? '…' : '')
+          merged.push({ ...s, matchedLinkName: snippet })
         }
       }
 
