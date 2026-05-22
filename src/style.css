@@ -1343,21 +1343,25 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .lightbox-name {
   font-size: 13px; color: rgba(255,255,255,0.6); text-align: center;
 }
-.file-block-content { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.file-block-content { display: flex; flex-direction: column; gap: 12px; }
 .file-preview-img {
   width: auto;
   max-width: 480px;
   margin-top: 24px;
+  margin-left: auto;
+  margin-right: auto;
   border-radius: var(--radius-sm);
   display: block;
   object-fit: contain;
 }                                                                                                                   
 
-.file-preview-video {                                                                                               
-  width: 100%; max-width: 100%;                                                                                     
-  border-radius: var(--radius-sm);                                                                                  
-  display: block;                                                                                                   
-  background: #000;                                                                                                 
+.file-preview-video {
+  width: 100%; max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: var(--radius-sm);
+  display: block;
+  background: #000;
 } 
 
 .file-list { display: flex; flex-direction: column; gap: 6px; }
