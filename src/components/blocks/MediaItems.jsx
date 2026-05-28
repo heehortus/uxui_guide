@@ -5,22 +5,25 @@ import Lightbox from './Lightbox'
 import CodeBlock from './CodeBlock'
 
 export function MediaItems({ items }) {
-  const [lightbox, setLightbox] = useState(null)
-  const media = (items || []).filter(isMediaFile)
+  const [lightboxIdx, setLightboxIdx] = useState(null)
+  const media = (items || []).filter(isMediaFile).map(item => {
+    const [name, url] = (item.text || '').split('|').map(s => s?.trim())
+    return { name, url, ext: getExt(name) }
+  })
   if (!media.length) return null
 
   return (
     <>
       <div className="inline-media-items">
-        {media.map((item, i) => {
-          const [name, url] = (item.text || '').split('|').map(s => s?.trim())
-          const ext = getExt(name)
-          return IMAGE_EXT.includes(ext)
-            ? <img key={i} src={url} alt={name} className="file-preview-img file-preview-clickable" onClick={() => setLightbox({ url, ext, name })} />
-            : <video key={i} src={url} controls className="file-preview-video file-preview-clickable" onClick={() => setLightbox({ url, ext, name })} />
-        })}
+        {media.map(({ name, url, ext }, i) =>
+          IMAGE_EXT.includes(ext)
+            ? <img key={i} src={url} alt={name} className="file-preview-img file-preview-clickable" onClick={() => setLightboxIdx(i)} />
+            : <video key={i} src={url} controls className="file-preview-video file-preview-clickable" onClick={() => setLightboxIdx(i)} />
+        )}
       </div>
-      {lightbox && <Lightbox {...lightbox} onClose={() => setLightbox(null)} />}
+      {lightboxIdx !== null && (
+        <Lightbox items={media} index={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+      )}
     </>
   )
 }

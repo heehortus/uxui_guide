@@ -3,7 +3,7 @@ import { IMAGE_EXT, VIDEO_EXT, DL_ICON, getExt, formatFileSize } from '../../lib
 import Lightbox from './Lightbox'
 
 export default function FileBlock({ content }) {
-  const [lightbox, setLightbox] = useState(null)
+  const [lightboxIdx, setLightboxIdx] = useState(null)
   const rows = (content || '').split('\n').filter(l => l.trim()).map(r => {
     const [name, url, sizeStr] = r.split('|').map(s => s?.trim())
     return { name, url, sizeStr, ext: getExt(name) }
@@ -18,8 +18,8 @@ export default function FileBlock({ content }) {
           <div className="file-media-grid">
             {media.map((r, i) =>
               IMAGE_EXT.includes(r.ext)
-                ? <img key={i} src={r.url} alt={r.name} className="file-preview-img file-preview-clickable" onClick={() => setLightbox(r)} />
-                : <video key={i} src={r.url} controls className="file-preview-video file-preview-clickable" onClick={() => setLightbox(r)} />
+                ? <img key={i} src={r.url} alt={r.name} className="file-preview-img file-preview-clickable" onClick={() => setLightboxIdx(i)} />
+                : <video key={i} src={r.url} controls className="file-preview-video file-preview-clickable" onClick={() => setLightboxIdx(i)} />
             )}
           </div>
         )}
@@ -36,7 +36,9 @@ export default function FileBlock({ content }) {
           </div>
         )}
       </div>
-      {lightbox && <Lightbox url={lightbox.url} ext={lightbox.ext} name={lightbox.name} onClose={() => setLightbox(null)} />}
+      {lightboxIdx !== null && (
+        <Lightbox items={media} index={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+      )}
     </>
   )
 }

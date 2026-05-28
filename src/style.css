@@ -1356,8 +1356,23 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   border-radius: var(--radius-sm); background: #000;
 }
 .lightbox-name {
-  font-size: 13px; color: rgba(255,255,255,0.6); text-align: center;
+  font-size: 16px; color: rgba(255,255,255,0.6); text-align: center;
 }
+.lightbox-counter { opacity: 0.7; }
+.lightbox-nav {
+  position: fixed;
+  top: 50%; transform: translateY(-50%);
+  width: 48px; height: 48px;
+  background: rgba(255,255,255,0.15); color: #fff;
+  border-radius: var(--radius-full);
+  font-size: 28px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background 150ms;
+  z-index: 201; user-select: none;
+}
+.lightbox-nav:hover { background: rgba(255,255,255,0.3); }
+.lightbox-prev { left: 20px; }
+.lightbox-next { right: 20px; }
 .file-block-content { display: flex; flex-direction: column; gap: 12px; }
 .file-media-grid {
   display: flex; flex-direction: row; flex-wrap: wrap;
