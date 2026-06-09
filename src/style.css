@@ -944,18 +944,24 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .rich-editor-content.ProseMirror-focused { outline: none; }
 .rich-editor-content mark { border-radius: 2px; padding: 0 1px; }
 .rich-editor-content a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
-.rich-editor-content code {
+.rich-editor-content pre {
+  background: #1e1e2e;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin: 6px 0;
+  overflow-x: auto;
+}
+.rich-editor-content pre code {
   display: block;
   font-family: 'Fira Mono', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
   font-size: 13px;
   line-height: 1.7;
-  background: #1e1e2e;
   color: #cdd6f4;
-  border-radius: var(--radius-sm);
-  padding: 12px 16px;
-  margin: 6px 0;
   white-space: pre-wrap;
   word-break: break-all;
+  background: none;
+  border: none;
+  padding: 0;
 }
 /* placeholder — handled by Tiptap extension via data-placeholder attr */
 .ProseMirror p.is-editor-empty:first-child::before {
@@ -979,20 +985,26 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 }
 .rich-content mark { border-radius: 2px; padding: 0 1px; }
 .rich-content a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-.rich-content code,
-.block-content code {
+.rich-content pre,
+.block-content pre {
+  background: #1e1e2e;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin: 6px 0;
+  overflow-x: auto;
+}
+.rich-content pre code,
+.block-content pre code {
   display: block;
   font-family: 'Fira Mono', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
   font-size: 13px;
   line-height: 1.7;
-  background: #1e1e2e;
   color: #cdd6f4;
-  border-radius: var(--radius-sm);
-  padding: 12px 16px;
-  margin: 6px 0;
   white-space: pre-wrap;
   word-break: break-all;
-  overflow-x: auto;
+  background: none;
+  border: none;
+  padding: 0;
 }
 
 /* ─── Kakao Item Form (BlockModal) ───────────── */

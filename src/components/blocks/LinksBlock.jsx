@@ -171,7 +171,7 @@ export default function LinksBlock({ block }) {
                       {fileData && (() => {
                         const isMedia = IMAGE_EXT.includes(fileData.ext) || VIDEO_EXT.includes(fileData.ext)
                         return isMedia
-                          ? <button className="link-code-btn link-file-btn" onClick={() => setLightbox(fileData)}>파일 ›</button>
+                          ? <button className="link-code-btn link-file-btn" onClick={() => setLightbox({ items: [fileData], index: 0 })}>파일 ›</button>
                           : <a href={fileData.url} target="_blank" rel="noopener" download={fileData.name} className="link-code-btn link-file-btn">파일 ›</a>
                       })()}
                     </td>

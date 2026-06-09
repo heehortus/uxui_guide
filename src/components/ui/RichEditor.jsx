@@ -162,7 +162,7 @@ const TOOLBAR = [
   { cmd: 'toggleItalic',      icon: 'I',  title: '이탤릭',  style: { fontStyle: 'italic' } },
   { cmd: 'toggleUnderline',   icon: 'U',  title: '밑줄',    style: { textDecoration: 'underline' } },
   { cmd: 'toggleStrike',      icon: 'S',  title: '취소선',  style: { textDecoration: 'line-through' } },
-  { cmd: 'toggleCode',        icon: '<>', title: '인라인 코드' },
+  { cmd: 'toggleCodeBlock',   icon: '<>', title: '코드 블록' },
   { sep: true },
   { special: 'highlight' },
   { special: 'color' },
@@ -181,7 +181,7 @@ function isActive(editor, cmd) {
   if (!editor) return false
   const map = {
     toggleBold: 'bold', toggleItalic: 'italic', toggleUnderline: 'underline',
-    toggleStrike: 'strike', toggleCode: 'code',
+    toggleStrike: 'strike', toggleCodeBlock: 'codeBlock',
     toggleBulletList: 'bulletList', toggleOrderedList: 'orderedList',
     toggleBlockquote: 'blockquote',
     toggleHeading2: ['heading', { level: 2 }],
