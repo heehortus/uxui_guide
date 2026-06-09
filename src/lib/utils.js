@@ -16,5 +16,5 @@ export function linkify(text) {
 
 export function linkifyText(text) {
   if (!text) return ''
-  return linkify(escHtml(text))
+  return linkify(escHtml(text)).replace(/\n/g, '<br>')
 }

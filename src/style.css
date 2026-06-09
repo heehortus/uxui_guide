@@ -887,6 +887,39 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   width: 1px; height: 20px; background: var(--outline-variant);
   margin: 0 4px; flex-shrink: 0;
 }
+.rich-color-picker {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: 10px 12px;
+  z-index: 50;
+  min-width: 160px;
+}
+.rich-color-picker-label {
+  font-size: 11px; font-weight: 600; color: var(--on-surface-variant);
+  letter-spacing: 0.04em; margin-bottom: 8px;
+}
+.rich-color-swatches {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.rich-color-swatch {
+  width: 22px; height: 22px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: transform 100ms, box-shadow 100ms;
+}
+.rich-color-swatch:hover { transform: scale(1.15); box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+.rich-color-swatch--none {
+  background: var(--surface-container);
+  font-size: 11px; color: var(--on-surface-variant);
+  display: flex; align-items: center; justify-content: center;
+  width: auto; padding: 0 6px; white-space: nowrap;
+}
 .rich-editor-content {
   padding: 12px 14px;
   min-height: 120px;
@@ -909,6 +942,21 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   color: var(--on-surface-variant);
 }
 .rich-editor-content.ProseMirror-focused { outline: none; }
+.rich-editor-content mark { border-radius: 2px; padding: 0 1px; }
+.rich-editor-content a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.rich-editor-content code {
+  display: block;
+  font-family: 'Fira Mono', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin: 6px 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
 /* placeholder — handled by Tiptap extension via data-placeholder attr */
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
@@ -928,6 +976,23 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
   border-left: 3px solid var(--outline-variant);
   margin: 0.5em 0; padding: 4px 12px;
   color: var(--on-surface-variant);
+}
+.rich-content mark { border-radius: 2px; padding: 0 1px; }
+.rich-content a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.rich-content code,
+.block-content code {
+  display: block;
+  font-family: 'Fira Mono', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin: 6px 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-x: auto;
 }
 
 /* ─── Kakao Item Form (BlockModal) ───────────── */

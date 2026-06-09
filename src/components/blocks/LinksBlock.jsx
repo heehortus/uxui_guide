@@ -105,7 +105,7 @@ export default function LinksBlock({ block }) {
 
   return (
     <>
-      
+
       {types.length > 1 && (
         <div className="link-filter-wrap">
           <div className="link-filter-dropdown">
@@ -145,7 +145,7 @@ export default function LinksBlock({ block }) {
               {hasUrl  && <th>링크</th>}
               {hasFile && <th className="col-code">파일</th>}
               {hasCode && <th className="col-code">코드</th>}
-              {hasDesc && <th className="col-desc">내용</th>}
+              {hasDesc && <th className="col-code">내용</th>}
               {hasNote && <th>비고</th>}
             </tr>
           </thead>
@@ -189,18 +189,15 @@ export default function LinksBlock({ block }) {
                     </td>
                   )}
                   {hasDesc && (
-                    <td className="col-desc">
-                      {row.desc && (() => {
-                        const preview = stripHtml(row.desc)
-                        return (
-                          <span
-                            className="link-desc-preview"
-                            onClick={() => setDescModal({ title: row.name, desc: row.desc, idx: row.originalIdx })}
-                          >
-                            {preview}
-                          </span>
-                        )
-                      })()}
+                    <td className="col-code">
+                      {row.desc && (
+                        <button
+                          className="link-code-btn link-file-btn"
+                          onClick={() => setDescModal({ title: row.name, desc: row.desc, idx: row.originalIdx })}
+                        >
+                          내용 ›
+                        </button>
+                      )}
                     </td>
                   )}
                   {hasNote && (
