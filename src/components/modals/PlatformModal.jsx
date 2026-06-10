@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase'
 
 export default function PlatformModal({ open, onClose, editing }) {
   const [label, setLabel] = useState('')
+  const [slug, setSlug] = useState('')
   const [description, setDescription] = useState('')
   const [iconUrl, setIconUrl] = useState('')     // existing or newly uploaded URL
   const [iconFile, setIconFile] = useState(null) // File object pending upload
@@ -20,6 +21,7 @@ export default function PlatformModal({ open, onClose, editing }) {
   useEffect(() => {
     if (open) {
       setLabel(editing?.label ?? '')
+      setSlug(editing?.slug ?? '')
       setDescription(editing?.description ?? '')
       // Only treat as URL if it starts with http (ignore old emoji values)
       const existing = editing?.icon ?? ''
@@ -50,7 +52,7 @@ export default function PlatformModal({ open, onClose, editing }) {
       setUploading(false)
     }
 
-    const payload = { label: label.trim(), description: description.trim(), icon: finalIcon }
+    const payload = { label: label.trim(), description: description.trim(), icon: finalIcon, slug: slug.trim() || null }
     if (editing) {
       await update.mutateAsync({ id: editing.id, ...payload })
     } else {
@@ -80,6 +82,13 @@ export default function PlatformModal({ open, onClose, editing }) {
         <label className="form-label">가이드북 이름</label>
         <input className="form-input" value={label} onChange={e => setLabel(e.target.value)}
           placeholder="예: 워드프레스 가이드북" />
+      </div>
+      <div className="form-group">
+        <label className="form-label">URL Slug</label>
+        <input className="form-input" value={slug}
+          onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+          placeholder="예: wordpress (영문 소문자, 숫자, 하이픈만)" />
+        <span className="form-hint">페이지 주소에 사용됩니다. 예: /wordpress</span>
       </div>
       <div className="form-group">
         <label className="form-label">설명</label>

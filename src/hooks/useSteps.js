@@ -47,7 +47,7 @@ export function useSearchSteps(query) {
       // 1. step title/subtitle 검색
       const { data: stepResults = [], error: e1 } = await supabase
         .from('steps')
-        .select('id, title, subtitle, number, platform_id, platforms(label)')
+        .select('id, title, subtitle, number, platform_id, platforms(label, slug)')
         .or(`title.ilike.%${q}%,subtitle.ilike.%${q}%`)
         .order('platform_id')
         .limit(20)
@@ -56,7 +56,7 @@ export function useSearchSteps(query) {
       // 2. 모든 블록 content/label 검색
       const { data: blockResults = [], error: e2 } = await supabase
         .from('blocks')
-        .select('content, label, type, steps(id, title, subtitle, number, platform_id, platforms(label))')
+        .select('content, label, type, steps(id, title, subtitle, number, platform_id, platforms(label, slug))')
         .or(`content.ilike.%${q}%,label.ilike.%${q}%`)
         .limit(30)
       if (e2) throw e2
@@ -64,7 +64,7 @@ export function useSearchSteps(query) {
       // 3. block_items text 검색
       const { data: itemResults = [], error: e3 } = await supabase
         .from('block_items')
-        .select('text, blocks(label, type, step_id, steps(id, title, subtitle, number, platform_id, platforms(label)))')
+        .select('text, blocks(label, type, step_id, steps(id, title, subtitle, number, platform_id, platforms(label, slug)))')
         .ilike('text', `%${q}%`)
         .limit(20)
       if (e3) throw e3

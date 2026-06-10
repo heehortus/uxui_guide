@@ -6,10 +6,10 @@ import PlatformModal from '../modals/PlatformModal'
 import ArrowIcon from '../ui/ArrowIcon'
 
 export default function Sidebar() {
-  const { platformId, stepId } = useParams()
+  const { platformSlug, stepNumber } = useParams()
   const navigate = useNavigate()
   const { data: platforms = [] } = usePlatforms()
-  const [openGroups, setOpenGroups] = useState(new Set([platformId].filter(Boolean)))
+  const [openGroups, setOpenGroups] = useState(new Set([platformSlug].filter(Boolean)))
   const [addPlatform, setAddPlatform] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [query, setQuery] = useState('')
@@ -37,15 +37,16 @@ export default function Sidebar() {
     })
   }
 
-  function handleNavPlatform(pid) {
-    setOpenGroups(new Set([pid]))
-    navigate(`/${pid}`)
+  function handleNavPlatform(pslug) {
+    setOpenGroups(new Set([pslug]))
+    navigate(`/${pslug}`)
   }
 
   function handleSelectResult(result) {
     clearSearch()
-    setOpenGroups(new Set([result.platform_id]))
-    navigate(`/${result.platform_id}/${result.id}`)
+    const pslug = result.platforms?.slug || result.platform_id
+    setOpenGroups(new Set([pslug]))
+    navigate(`/${pslug}/${result.number}`)
   }
 
   function handleGoHome() {
@@ -116,18 +117,21 @@ export default function Sidebar() {
                     <span>홈</span>
                   </div>
                   {/* 플랫폼 그룹 */}
-                  {platforms.map(p => (
-                    <PlatformGroup
-                      key={p.id}
-                      platform={p}
-                      isOpen={openGroups.has(p.id)}
-                      activePlatformId={platformId}
-                      activeStepId={stepId}
-                      onToggle={() => toggleGroup(p.id)}
-                      onClickPlatform={() => handleNavPlatform(p.id)}
-                      onClickStep={(sid) => navigate(`/${p.id}/${sid}`)}
-                    />
-                  ))}
+                  {platforms.map(p => {
+                    const pslug = p.slug || p.id
+                    return (
+                      <PlatformGroup
+                        key={p.id}
+                        platform={p}
+                        isOpen={openGroups.has(pslug)}
+                        activePlatformSlug={platformSlug}
+                        activeStepNumber={stepNumber}
+                        onToggle={() => toggleGroup(pslug)}
+                        onClickPlatform={() => handleNavPlatform(pslug)}
+                        onClickStep={(num) => navigate(`/${pslug}/${num}`)}
+                      />
+                    )
+                  })}
                 </>
               )}
             </nav>
@@ -164,9 +168,9 @@ function SearchResults({ query, onSelect }) {
   )
 }
 
-function PlatformGroup({ platform, isOpen, activePlatformId, activeStepId, onToggle, onClickPlatform, onClickStep }) {
+function PlatformGroup({ platform, isOpen, activePlatformSlug, activeStepNumber, onToggle, onClickPlatform, onClickStep }) {
   const { data: steps = [] } = useSteps(isOpen ? platform.id : null)
-  const isActive = activePlatformId === platform.id
+  const isActive = activePlatformSlug === (platform.slug || platform.id)
 
   return (
     <div>
@@ -188,8 +192,8 @@ function PlatformGroup({ platform, isOpen, activePlatformId, activeStepId, onTog
           {steps.map(step => (
             <div
               key={step.id}
-              className={`nav-item nav-sub-item${activeStepId === step.id ? ' active' : ''}`}
-              onClick={() => onClickStep(step.id)}
+              className={`nav-item nav-sub-item${activeStepNumber === step.number ? ' active' : ''}`}
+              onClick={() => onClickStep(step.number)}
             >
               <span>{step.title}</span>
             </div>

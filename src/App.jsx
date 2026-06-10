@@ -20,8 +20,8 @@ export default function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route index element={<Home />} />
-              <Route path=":platformId" element={<PlatformPage />} />
-              <Route path=":platformId/:stepId" element={<StepPage />} />
+              <Route path=":platformSlug" element={<PlatformPage />} />
+              <Route path=":platformSlug/:stepNumber" element={<StepPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -20,7 +20,7 @@ export function usePlatforms() {
 export function useCreatePlatform() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ label, description, icon }) => {
+    mutationFn: async ({ label, description, icon, slug }) => {
       const { data: existing } = await supabase
         .from('platforms')
         .select('order_index')
@@ -30,7 +30,7 @@ export function useCreatePlatform() {
       const order_index = existing ? existing.order_index + 1 : 0
       const { data, error } = await supabase
         .from('platforms')
-        .insert({ label, description, icon, order_index })
+        .insert({ label, description, icon, slug: slug || null, order_index })
         .select()
         .single()
       if (error) throw error
@@ -43,10 +43,10 @@ export function useCreatePlatform() {
 export function useUpdatePlatform() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async ({ id, label, description, icon }) => {
+    mutationFn: async ({ id, label, description, icon, slug }) => {
       const { data, error } = await supabase
         .from('platforms')
-        .update({ label, description, icon })
+        .update({ label, description, icon, slug: slug || null })
         .eq('id', id)
         .select()
         .single()

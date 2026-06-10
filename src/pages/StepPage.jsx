@@ -12,13 +12,19 @@ import { useToast } from '../context/ToastContext'
 
 
 export default function StepPage() {
-  const { platformId, stepId } = useParams()
+  const { platformSlug, stepNumber } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
 
   const { data: platforms = [] } = usePlatforms()
-  const { data: step, isLoading } = useStep(stepId)
+  const platform = platforms.find(p => (p.slug || p.id) === platformSlug)
+  const platformId = platform?.id
+
   const { data: steps = [] } = useSteps(platformId)
+  const stepMeta = steps.find(s => s.number === stepNumber)
+  const stepId = stepMeta?.id
+
+  const { data: step, isLoading } = useStep(stepId)
   const deleteStep = useDeleteStep()
 
   const reorderBlocks = useReorderBlocks()
@@ -81,7 +87,7 @@ export default function StepPage() {
     if (!confirm('이 단계를 삭제할까요?')) return
     await deleteStep.mutateAsync({ id: stepId, platform_id: platformId })
     toast('삭제되었습니다.')
-    navigate(`/${platformId}`)
+    navigate(`/${platformSlug}`)
   }
 
   if (isLoading) return <div className="empty-state"><div className="empty-state-desc">불러오는 중…</div></div>
@@ -153,7 +159,7 @@ export default function StepPage() {
       />
 
       {/* 이전/다음 단계 네비게이션 */}
-      <StepNavigation steps={steps} currentId={stepId} platformId={platformId} />
+      <StepNavigation steps={steps} currentNumber={stepNumber} platformSlug={platformSlug} />
 
       {/* 블록 추가 모달 */}
       <BlockModal
@@ -178,9 +184,9 @@ function ChevronDouble({ direction }) {
   )
 }
 
-function StepNavigation({ steps, currentId, platformId }) {
+function StepNavigation({ steps, currentNumber, platformSlug }) {
   const navigate = useNavigate()
-  const idx = steps.findIndex(s => s.id === currentId)
+  const idx = steps.findIndex(s => s.number === currentNumber)
   if (steps.length < 2 || idx === -1) return null
 
   const prev = idx > 0 ? steps[idx - 1] : null
@@ -190,7 +196,7 @@ function StepNavigation({ steps, currentId, platformId }) {
     <div className="step-nav">
       <div className="step-nav-btn-wrap">
         {prev && (
-          <button className="step-nav-btn step-nav-btn--prev" onClick={() => navigate(`/${platformId}/${prev.id}`)}>
+          <button className="step-nav-btn step-nav-btn--prev" onClick={() => navigate(`/${platformSlug}/${prev.number}`)}>
             <ChevronDouble direction="left" />
             <div className="step-nav-meta">
               <span className="step-nav-label">이전 단계</span>
@@ -199,7 +205,7 @@ function StepNavigation({ steps, currentId, platformId }) {
           </button>
         )}
         {next && (
-          <button className="step-nav-btn step-nav-btn--next" onClick={() => navigate(`/${platformId}/${next.id}`)}>
+          <button className="step-nav-btn step-nav-btn--next" onClick={() => navigate(`/${platformSlug}/${next.number}`)}>
             <div className="step-nav-meta">
               <span className="step-nav-label">다음 단계</span>
               <span className="step-nav-title">{next.title}</span>

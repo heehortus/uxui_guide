@@ -7,11 +7,14 @@ import PageActionsMenu from '../components/ui/PageActionsMenu'
 import { useToast } from '../context/ToastContext'
 
 export default function PlatformPage() {
-  const { platformId } = useParams()
+  const { platformSlug } = useParams()
   const navigate = useNavigate()
   const toast = useToast()
 
   const { data: platforms = [] } = usePlatforms()
+  const platform = platforms.find(p => (p.slug || p.id) === platformSlug)
+  const platformId = platform?.id
+
   const { data: steps = [], isLoading } = useSteps(platformId)
   const deletePlatform = useDeletePlatform()
   const reorderSteps = useReorderSteps()
@@ -30,8 +33,6 @@ export default function PlatformPage() {
       ],
     })
   }
-
-  const platform = platforms.find(p => p.id === platformId)
 
   async function handleDelete() {
     if (!confirm(`"${platform?.label}"을 삭제할까요?\n포함된 모든 단계가 함께 삭제됩니다.`)) return
@@ -90,7 +91,7 @@ export default function PlatformPage() {
               <div
                 className="card"
                 style={{ cursor: 'pointer' }}
-                onClick={() => navigate(`/${platformId}/${step.id}`)}
+                onClick={() => navigate(`/${platformSlug}/${step.number}`)}
               >
                 <div className="card-header">
                   <div className={`card-step-badge${step.number === '00' ? ' accent' : ''}`}>
