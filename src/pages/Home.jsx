@@ -59,7 +59,7 @@ export default function Home() {
                 title="아래로"
               >▼</button>
             </div>
-            <div className="card platform-entry-card" onClick={() => navigate(`/${p.id}`)}>
+            <div className="card platform-entry-card" onClick={() => navigate(`/${p.slug || p.id}`)}>
               <div className="card-header">
                 <div className="card-step-badge accent" style={{ width: '40px', height: '40px', padding: '8px', overflow: 'hidden' }}>
                   {p.icon?.startsWith('http')
