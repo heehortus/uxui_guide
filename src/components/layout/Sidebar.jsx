@@ -184,7 +184,7 @@ function PlatformGroup({ platform, isOpen, activePlatformSlug, activeStepNumber,
       {isOpen && (
         <div className="nav-group-steps open">
           <div
-            className={`nav-item nav-sub-item${isActive && !activeStepId ? ' active' : ''}`}
+            className={`nav-item nav-sub-item${isActive && !activeStepNumber ? ' active' : ''}`}
             onClick={onClickPlatform}
           >
             <span>프로세스 목록</span>
