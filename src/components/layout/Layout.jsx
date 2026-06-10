@@ -7,9 +7,10 @@ import FabButton from '../ui/FabButton'
 import { usePlatforms } from '../../hooks/usePlatforms'
 
 export default function Layout() {
-  const { platformId, stepId } = useParams()
+  const { platformSlug, stepNumber } = useParams()
   const [addStep, setAddStep] = useState(false)
   const { data: platforms = [] } = usePlatforms()
+  const platform = platforms.find(p => (p.slug || p.id) === platformSlug)
 
   return (
     <div className="app">
@@ -26,11 +27,11 @@ export default function Layout() {
         open={addStep}
         onClose={() => setAddStep(false)}
         platforms={platforms}
-        platformId={platformId}
+        platformId={platform?.id}
       />
 
       {/* 단계 추가 FAB — PlatformPage에서만 */}
-      {platformId && !stepId && (
+      {platformSlug && !stepNumber && (
         <FabButton onClick={() => setAddStep(true)} title="단계 추가" />
       )}
     </div>

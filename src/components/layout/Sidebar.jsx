@@ -111,7 +111,7 @@ export default function Sidebar() {
               {!showSearch && (
                 <>
                   <div
-                    className={`nav-item${!platformId ? ' active' : ''}`}
+                    className={`nav-item${!platformSlug ? ' active' : ''}`}
                     onClick={() => { setOpenGroups(new Set()); navigate('/') }}
                   >
                     <span>홈</span>
