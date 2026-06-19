@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useDeleteBlock } from '../../hooks/useBlocks'
 import { useToast } from '../../context/ToastContext'
 import { linkifyText } from '../../lib/utils'
@@ -20,11 +22,23 @@ function DotsIcon() {
   )
 }
 
+function DragHandleIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+      {[3, 7, 11].map(cy => [4, 10].map(cx => (
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1.5} />
+      )))}
+    </svg>
+  )
+}
+
 export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
   const [editing, setEditing] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const deleteBlock = useDeleteBlock()
   const toast = useToast()
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id })
 
   function handleCopy() {
     setMenuOpen(false)
@@ -41,11 +55,22 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
   }
 
   const typeClass = block.type === 'default' ? '' : `block-${block.type}`
+  const dragStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : undefined,
+    zIndex: isDragging ? 10 : undefined,
+    position: 'relative',
+  }
 
   return (
     <>
+    <div ref={setNodeRef} style={dragStyle}>
       <div className={`content-block ${typeClass}`} id={`block-${block.id}`}>
         <div className="block-order-handle">
+          <button className="block-drag-handle" {...listeners} {...attributes} title="꾹 눌러서 순서 변경">
+            <DragHandleIcon />
+          </button>
           <button className="block-order-btn" onClick={onMoveUp} disabled={!onMoveUp} title="위로">▲</button>
           <button className="block-order-btn" onClick={onMoveDown} disabled={!onMoveDown} title="아래로">▼</button>
         </div>
@@ -69,8 +94,9 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
         <BlockInner block={block} />
         <InlineItems items={block.block_items} />
       </div>
+    </div>
 
-      {/* 모바일 액션 시트 */}
+    {/* 모바일 액션 시트 */}
       {menuOpen && (
         <div className="block-action-sheet-overlay" onClick={() => setMenuOpen(false)}>
           <div className="block-action-sheet" onClick={e => e.stopPropagation()}>

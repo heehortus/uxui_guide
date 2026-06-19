@@ -4,6 +4,8 @@ import { usePlatforms } from '../hooks/usePlatforms'
 import { useStep, useSteps, useDeleteStep } from '../hooks/useSteps'
 import { useReorderBlocks, useCreateBlock } from '../hooks/useBlocks'
 import Block from '../components/blocks/Block'
+import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import BlockModal from '../components/modals/BlockModal'
 import StepModal from '../components/modals/StepModal'
 import PageActionsMenu from '../components/ui/PageActionsMenu'
@@ -30,6 +32,24 @@ export default function StepPage() {
   const reorderBlocks = useReorderBlocks()
   const createBlock = useCreateBlock()
   const [editStep, setEditStep] = useState(false)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+  )
+
+  function handleDragEnd({ active, over }) {
+    if (!over || active.id === over.id) return
+    const blocks = step?.blocks ?? []
+    const oldIndex = blocks.findIndex(b => b.id === active.id)
+    const newIndex = blocks.findIndex(b => b.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+    const reordered = arrayMove(blocks, oldIndex, newIndex)
+    reorderBlocks.mutate({
+      step_id: stepId,
+      blocks: reordered.map((b, i) => ({ id: b.id, order_index: i })),
+    })
+  }
   const [addBlock, setAddBlock] = useState(null)
   const [ctxMenu, setCtxMenu] = useState(null) // { x, y }
 
@@ -115,17 +135,21 @@ export default function StepPage() {
         </button>
       </div>
 
-      <div className="content-blocks" onContextMenu={handleContextMenu}>
-        {(step.blocks ?? []).map((block, i, arr) => (
-          <Block
-            key={block.id}
-            block={block}
-            stepId={stepId}
-            onMoveUp={i > 0 ? () => handleMoveBlock(arr, i, -1) : null}
-            onMoveDown={i < arr.length - 1 ? () => handleMoveBlock(arr, i, 1) : null}
-          />
-        ))}
-      </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={(step.blocks ?? []).map(b => b.id)} strategy={verticalListSortingStrategy}>
+          <div className="content-blocks" onContextMenu={handleContextMenu}>
+            {(step.blocks ?? []).map((block, i, arr) => (
+              <Block
+                key={block.id}
+                block={block}
+                stepId={stepId}
+                onMoveUp={i > 0 ? () => handleMoveBlock(arr, i, -1) : null}
+                onMoveDown={i < arr.length - 1 ? () => handleMoveBlock(arr, i, 1) : null}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {ctxMenu && (
         <>
