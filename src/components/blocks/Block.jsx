@@ -22,15 +22,6 @@ function DotsIcon() {
   )
 }
 
-function DragHandleIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
-      {[3, 7, 11].map(cy => [4, 10].map(cx => (
-        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={1.5} />
-      )))}
-    </svg>
-  )
-}
 
 export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
   const [editing, setEditing] = useState(false)
@@ -65,18 +56,15 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
 
   return (
     <>
-    <div ref={setNodeRef} style={dragStyle}>
+    <div ref={setNodeRef} style={{ ...dragStyle, cursor: isDragging ? 'grabbing' : 'grab' }} {...listeners} {...attributes}>
       <div className={`content-block ${typeClass}`} id={`block-${block.id}`}>
         <div className="block-order-handle">
-          <button className="block-drag-handle" {...listeners} {...attributes} title="꾹 눌러서 순서 변경">
-            <DragHandleIcon />
-          </button>
-          <button className="block-order-btn" onClick={onMoveUp} disabled={!onMoveUp} title="위로">▲</button>
-          <button className="block-order-btn" onClick={onMoveDown} disabled={!onMoveDown} title="아래로">▼</button>
+          <button className="block-order-btn" onClick={onMoveUp} disabled={!onMoveUp} title="위로" onPointerDown={e => e.stopPropagation()}>▲</button>
+          <button className="block-order-btn" onClick={onMoveDown} disabled={!onMoveDown} title="아래로" onPointerDown={e => e.stopPropagation()}>▼</button>
         </div>
 
         {/* 데스크탑 액션 버튼 */}
-        <div className="block-actions">
+        <div className="block-actions" onPointerDown={e => e.stopPropagation()}>
           <button className="btn btn-ghost btn-sm" onClick={handleCopy}>복사</button>
           <button className="btn btn-ghost btn-sm" onClick={() => setEditing(true)}>수정</button>
           <button className="btn btn-ghost btn-sm" style={{ color: 'var(--destructive)' }} onClick={handleDelete}>
@@ -85,7 +73,7 @@ export default function Block({ block, stepId, onMoveUp, onMoveDown }) {
         </div>
 
         {/* 모바일 액션 버튼 */}
-        <button className="block-mobile-menu-btn" onClick={() => setMenuOpen(true)}>
+        <button className="block-mobile-menu-btn" onPointerDown={e => e.stopPropagation()} onClick={() => setMenuOpen(true)}>
           <DotsIcon />
         </button>
 
