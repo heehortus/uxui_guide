@@ -69,7 +69,7 @@ export default function LinksBlock({ block }) {
   const hasFile = allRows.some(r => isFileExtra(r.extra))
   const hasCode = allRows.some(r => r.code)
   const hasNote = allRows.some(r => r.extra && !isFileExtra(r.extra))
-  const hasDesc = allRows.some(r => r.desc)
+  const hasDesc = allRows.some(r => stripHtml(r.desc))
   const hasKakao = allRows.some(r => r.kakao)
 
   const types = hasType
@@ -193,7 +193,7 @@ export default function LinksBlock({ block }) {
                   )}
                   {hasDesc && (
                     <td className="col-code">
-                      {row.desc && (
+                      {stripHtml(row.desc) && (
                         <button
                           className="link-code-btn link-file-btn"
                           onClick={() => setDescModal({ title: row.name, desc: row.desc, idx: row.originalIdx })}
