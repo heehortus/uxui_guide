@@ -15,14 +15,14 @@ const BADGE = {
 
 function parseRows(content) {
   return (content || '').split('\n').filter(l => l.trim()).map(r => {
-    const [name = '', type = '', url = '', extra = '', code = '', desc = ''] = r.split('|').map(s => s?.trim() ?? '')
-    return { name, type, url, extra, code: code.replace(/\\n/g, '\n'), desc: desc.replace(/\\n/g, '\n') }
+    const [name = '', type = '', url = '', extra = '', code = '', desc = '', kakao = ''] = r.split('|').map(s => s?.trim() ?? '')
+    return { name, type, url, extra, code: code.replace(/\\n/g, '\n'), desc: desc.replace(/\\n/g, '\n'), kakao: kakao.replace(/\\n/g, '\n') }
   })
 }
 
 function serializeRows(rows) {
   return rows.map(r =>
-    `${r.name}|${r.type}|${r.url}|${r.extra}|${r.code.replace(/\n/g, '\\n')}|${(r.desc || '').replace(/\n/g, '\\n')}`
+    `${r.name}|${r.type}|${r.url}|${r.extra}|${r.code.replace(/\n/g, '\\n')}|${(r.desc || '').replace(/\n/g, '\\n')}|${(r.kakao || '').replace(/\n/g, '\\n')}`
   ).join('\n')
 }
 
@@ -55,6 +55,7 @@ export default function LinksBlock({ block }) {
   const [codeModal, setCodeModal] = useState(null)
   const [lightbox, setLightbox] = useState(null)
   const [descModal, setDescModal] = useState(null)
+  const [kakaoModal, setKakaoModal] = useState(null)
   const [filterType, setFilterType] = useState('전체')
   const [filterOpen, setFilterOpen] = useState(false)
   const update = useUpdateBlock()
@@ -69,6 +70,7 @@ export default function LinksBlock({ block }) {
   const hasCode = allRows.some(r => r.code)
   const hasNote = allRows.some(r => r.extra && !isFileExtra(r.extra))
   const hasDesc = allRows.some(r => r.desc)
+  const hasKakao = allRows.some(r => r.kakao)
 
   const types = hasType
     ? ['전체', ...Array.from(new Set(allRows.map(r => r.type).filter(Boolean)))]
@@ -146,6 +148,7 @@ export default function LinksBlock({ block }) {
               {hasFile && <th className="col-code">파일</th>}
               {hasCode && <th className="col-code">코드</th>}
               {hasDesc && <th className="col-code">내용</th>}
+              {hasKakao && <th className="col-code">카카오</th>}
               {hasNote && <th>비고</th>}
             </tr>
           </thead>
@@ -200,6 +203,18 @@ export default function LinksBlock({ block }) {
                       )}
                     </td>
                   )}
+                  {hasKakao && (
+                    <td className="col-code">
+                      {row.kakao && (
+                        <button
+                          className="link-code-btn link-file-btn"
+                          onClick={() => setKakaoModal({ idx: row.originalIdx, kakao: row.kakao, title: row.name })}
+                        >
+                          카카오 ›
+                        </button>
+                      )}
+                    </td>
+                  )}
                   {hasNote && (
                     <td><span style={{ fontSize: 13 }}>{!isFileExtra(row.extra) ? row.extra : ''}</span></td>
                   )}
@@ -229,6 +244,24 @@ export default function LinksBlock({ block }) {
             setDescModal(prev => ({ ...prev, desc: newDesc }))
           }}
           onDelete={() => handleRowDelete(descModal.idx)}
+        />
+      )}
+
+      {kakaoModal && (
+        <KakaoDescModal
+          title={kakaoModal.title}
+          kakao={kakaoModal.kakao}
+          onClose={() => setKakaoModal(null)}
+          onSave={async newKakao => {
+            const next = rows.map((r, i) => i === kakaoModal.idx ? { ...r, kakao: newKakao } : r)
+            await update.mutateAsync({
+              id: block.id, step_id: block.step_id,
+              type: block.type, label: block.label,
+              content: serializeRows(next), items: [],
+            })
+            setKakaoModal(prev => ({ ...prev, kakao: newKakao }))
+          }}
+          onDelete={() => handleRowDelete(kakaoModal.idx)}
         />
       )}
 
@@ -318,6 +351,122 @@ function DescModal({ title, desc, onClose, onSave, onDelete }) {
           }
         </div>
       </div>
+    </div>
+  )
+}
+
+function parseKakaoMessages(content) {
+  return (content || '')
+    .split(/\n---\n|^---$/m)
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(msg => {
+      const lines = msg.split('\n')
+      let title = ''
+      let body = msg
+      if (lines[0]?.startsWith('# ')) {
+        title = lines[0].slice(2).trim()
+        body = lines.slice(1).join('\n').trim()
+      }
+      return { title, body }
+    })
+}
+
+function KakaoDescModal({ title, kakao, onClose, onSave, onDelete }) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(kakao)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave(draft)
+    setSaving(false)
+    setEditing(false)
+  }
+
+  const messages = parseKakaoMessages(kakao)
+
+  return (
+    <div className="modal-overlay open" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="modal">
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flex: 1, alignItems: 'center', padding: '12px 16px' }}>
+          {!editing && (
+            <button className="btn-sm" onClick={() => { setDraft(kakao); setEditing(true) }}>수정</button>
+          )}
+          {!editing && onDelete && (
+            <button className="btn-sm" style={{ color: 'var(--destructive)' }} onClick={onDelete}>삭제</button>
+          )}
+          {editing && (
+            <>
+              <button className="btn-sm" onClick={() => setEditing(false)}>취소</button>
+              <button className="btn-sm" style={{ color: 'var(--accent)', fontWeight: 600 }} onClick={handleSave} disabled={saving}>
+                {saving ? '저장 중…' : '저장'}
+              </button>
+            </>
+          )}
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+
+        <div className="modal-header" style={{ borderTop: '1px solid var(--outline-variant)', borderBottom: 'none' }}>
+          <div className="modal-title">{title}</div>
+        </div>
+        <div className="modal-body">
+          {editing ? (
+            <textarea
+              className="form-textarea code-textarea"
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              placeholder={'# 제목 (선택)\n메시지 내용\n---\n# 두 번째 메시지\n내용'}
+              spellCheck={false}
+              style={{ minHeight: 200 }}
+              autoFocus
+            />
+          ) : (
+            <div className="kakao-messages">
+              {messages.map((msg, i) => (
+                <KakaoDescBubble key={i} title={msg.title || `메시지 ${i + 1}`} body={msg.body} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function KakaoDescBubble({ title, body }) {
+  const [copied, setCopied] = useState(false)
+
+  function handleCopy() {
+    navigator.clipboard.writeText(body).catch(() => {
+      const ta = document.createElement('textarea')
+      ta.value = body
+      ta.style.cssText = 'position:fixed;opacity:0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }).finally(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <div className="kakao-bubble">
+      <div className="kakao-bubble-header">
+        <span className="kakao-bubble-title">{title}</span>
+        <button className={`btn btn-ghost btn-sm${copied ? ' copied' : ''}`} onClick={handleCopy}>
+          {copied ? '복사됨 ✓' : '복사'}
+        </button>
+      </div>
+      <div className="kakao-bubble-text">{body}</div>
     </div>
   )
 }

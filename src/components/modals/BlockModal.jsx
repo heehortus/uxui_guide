@@ -23,7 +23,7 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
   const [type, setType] = useState('default')
   const [label, setLabel] = useState('')
   const [content, setContent] = useState('')
-  const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '' }])
+  const [linkItems, setLinkItems] = useState([{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '', kakaoMsgs: [{ title: '', body: '' }] }])
   const [processItems, setProcessItems] = useState([{ title: '', desc: '', num: '' }])
   const [kakaoItems, setKakaoItems] = useState([{ title: '클라이언트에게 다음 메시지를 전송합니다.', body: '' }])
   const [codeContent, setCodeContent] = useState('')
@@ -59,11 +59,11 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         const rows = (editing?.content ?? '').split('\n').filter(Boolean)
         setLinkItems(rows.length > 0
           ? rows.map(r => {
-              const [name = '', type = '', url = '', extra = '', code = '', desc = ''] = r.split('|').map(s => s?.trim() ?? '')
+              const [name = '', type = '', url = '', extra = '', code = '', desc = '', kakao = ''] = r.split('|').map(s => s?.trim() ?? '')
               const isFileExtra = extra.includes('::')
-              return { name, type, url, note: isFileExtra ? '' : extra, file: isFileExtra ? extra : '', _file: null, code: code.replace(/\\n/g, '\n'), desc: desc.replace(/\\n/g, '\n') }
+              return { name, type, url, note: isFileExtra ? '' : extra, file: isFileExtra ? extra : '', _file: null, code: code.replace(/\\n/g, '\n'), desc: desc.replace(/\\n/g, '\n'), kakaoMsgs: parseLinkKakaoMsgs(kakao.replace(/\\n/g, '\n')) }
             })
-          : [{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '' }]
+          : [{ name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '', kakaoMsgs: [{ title: '', body: '' }] }]
         )
       } else if (editing?.type === 'kakao') {
         const msgs = (editing?.content ?? '').split(/\n---\n/).map(s => s.trim()).filter(Boolean)
@@ -143,7 +143,11 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
         .filter(it => it.name.trim() || it.url.trim())
         .map(it => {
           const extra = it.file ? it.file : (it.note ?? '')
-          return `${it.name}|${it.type}|${it.url}|${extra}|${it.code.replace(/\n/g, '\\n')}|${(it.desc || '').replace(/\n/g, '\\n')}`
+          const kakaoStr = (it.kakaoMsgs || [])
+            .filter(m => m.body.trim())
+            .map(m => m.title.trim() ? `# ${m.title}\n${m.body}` : m.body)
+            .join('\n---\n')
+          return `${it.name}|${it.type}|${it.url}|${extra}|${it.code.replace(/\n/g, '\\n')}|${(it.desc || '').replace(/\n/g, '\\n')}|${kakaoStr.replace(/\n/g, '\\n')}`
         })
         .join('\n')
     }
@@ -417,12 +421,43 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
                   placeholder="코드 (선택)"
                   spellCheck={false}
                 />
+
+                <div className="kakao-items-list" style={{ marginTop: 4 }}>
+                  {(item.kakaoMsgs || []).map((msg, mi) => (
+                    <div key={mi} className="kakao-item-block">
+                      <div className="kakao-item-header">
+                        <span className="kakao-item-num">메시지 {mi + 1}</span>
+                        <button className="modal-item-remove" onClick={() => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, kakaoMsgs: it.kakaoMsgs.filter((_, k) => k !== mi) } : it))}>×</button>
+                      </div>
+                      <input
+                        className="form-input"
+                        value={msg.title}
+                        onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, kakaoMsgs: it.kakaoMsgs.map((m, k) => k === mi ? { ...m, title: e.target.value } : m) } : it))}
+                        placeholder="레이블 (선택)"
+                      />
+                      <textarea
+                        className="form-textarea link-item-code"
+                        value={msg.body}
+                        onChange={e => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, kakaoMsgs: it.kakaoMsgs.map((m, k) => k === mi ? { ...m, body: e.target.value } : m) } : it))}
+                        placeholder="메시지 내용"
+                        spellCheck={false}
+                      />
+                    </div>
+                  ))}
+                  <button
+                    className="link-item-add-btn"
+                    style={{ marginTop: 4 }}
+                    onClick={() => setLinkItems(prev => prev.map((it, j) => j === i ? { ...it, kakaoMsgs: [...(it.kakaoMsgs || []), { title: '', body: '' }] } : it))}
+                  >
+                    + 메시지 추가
+                  </button>
+                </div>
               </div>
             ))}
           </div>
           <button
             className="link-item-add-btn"
-            onClick={() => setLinkItems(prev => [...prev, { name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '' }])}
+            onClick={() => setLinkItems(prev => [...prev, { name: '', type: '', url: '', note: '', file: '', _file: null, code: '', desc: '', kakaoMsgs: [{ title: '', body: '' }] }])}
           >
             + 항목 추가
           </button>
@@ -591,6 +626,18 @@ export default function BlockModal({ open, onClose, stepId, editing }) {
       </div>
     </Modal>
   )
+}
+
+function parseLinkKakaoMsgs(str) {
+  const parts = (str || '').split(/\n---\n/).map(s => s.trim()).filter(Boolean)
+  if (!parts.length) return [{ title: '', body: '' }]
+  return parts.map(msg => {
+    const lines = msg.split('\n')
+    if (lines[0]?.startsWith('# ')) {
+      return { title: lines[0].slice(2).trim(), body: lines.slice(1).join('\n').trim() }
+    }
+    return { title: '', body: msg }
+  })
 }
 
 function formatFileSize(bytes) {
