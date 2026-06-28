@@ -697,7 +697,7 @@ button { cursor: pointer; font-family: var(--font); border: none; background: no
 .link-table th:first-child,
 .link-table td:first-child { width: 240px; }
 .link-table th.col-type, .link-table td.col-type { width: 80px; }
-.link-table th.col-code, .link-table td.col-code { width: 72px; }
+.link-table th.col-code, .link-table td.col-code { width: 84px; }
 .link-table th {
   text-align: left;
   padding: 8px 12px;
